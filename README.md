@@ -4,14 +4,38 @@
 1. СУБД PostgreSQL:13.3
 2. СУБД ClickHouse:latest
 3. Хранилище ZooKeeper:3.7
-4. Брокер Kafka:latest
+4. Брокер Kafka:latest (Закомменчен)
 5. AWS Minio:latest (аналог S3)
 
 ---
 Запуск:
+1. cd в директорию проекта
+2. Поднимаем образы через compose
 ```bash
-docker compose -f docker-compose.yaml up -d
+docker compose up -d
 ```
+3. После первичного запуска необходимо сделать рестарт, чтобы ClickHouse подцепил конфиги из `kaboupi_clickhouse/`:
+```bash
+docker compose restart
+```
+4. Радуемся поднятым сервисам!
+
+> ❗Если хотите добавить PV, то нужно прописать их напрямую в `volumes:`, например:
+> ```yaml
+> services:
+>   clickhouse:
+>     image: clickhouse/clickhouse-server:latest
+>     ...
+>     volumes:
+>       - ./kaboupi_clickhouse:/etc/clickhouse-server
+>       - ./my_custom_dir:/var/lib/clickhouse  # эта строчка добавит в вашу локальную! директорию my_custom_dir все данные клика
+> 
+> volumes:
+>   kaboupi_clickhouse:
+>     driver: local
+>   my_custom_dir:
+>     driver: local
+> ```
 
 Проверка на запуск:
 - ClickHouse: http://localhost:8123/
