@@ -1,0 +1,107 @@
+services:
+
+  # default postgres DB
+  postgres:
+    container_name: kaboupi-postgres
+    image: postgres:13.3
+    environment:
+      - POSTGRES_USER=kaboupi
+      - POSTGRES_PASSWORD=kaboupi
+    ports:
+      - '5432:5432'
+    volumes:
+      - ./kaboupi_postgres:/var/lib/postgresql/data/
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres_user -d postgres_db"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+    tty: true
+    stdin_open: true
+    networks:
+      clickhouse-network:
+        ipv4_address: 172.23.0.21
+
+  # zookeeper for clickhouse
+  zookeeper:
+    image: zookeeper:3.7
+    container_name: "kaboupi-zookeeer"
+    hostname: zookeeper
+    networks:
+      clickhouse-network:
+        ipv4_address: 172.23.0.10
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - 22181:2181
+
+  # clickhouse-server image
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    container_name: "kaboupi-clickhouse"
+    hostname: "kaboupi-clickhouse"
+    depends_on:
+      - zookeeper
+    networks:
+      clickhouse-network:
+        ipv4_address: 172.23.0.11
+    ports:
+      - "127.0.0.1:8123:8123"
+      - "127.0.0.1:9000:9000"
+    volumes:
+      - ./kaboupi_clickhouse/etc:/etc/clickhouse-server
+      - ./kaboupi_clickhouse/data:/var/lib/clickhouse
+      - ./kaboupi_clickhouse/server:/var/log/clickhouse-server
+
+  # kafka (Optional)
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    container_name: kaboupi-kafka
+    hostname: kaboupi-kafka
+    depends_on:
+      - zookeeper
+    networks:
+      clickhouse-network:
+        ipv4_address: 172.23.0.20
+    ports:
+      - 29092:29092
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 172.23.0.10:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+    # minio as aws s3
+  minio:
+    image: minio/minio:latest
+    container_name: kaboupi-minio
+    ports:
+      - "9001:9001"
+      - "9003:9000"
+    environment:
+      MINIO_ROOT_USER: kaboupi
+      MINIO_ROOT_PASSWORD: kaboupipass
+    command: server /data --console-address ":9001"
+    volumes:
+      - ./kaboupi_minio:/data
+
+networks:
+  clickhouse-network:
+    name: clickhouse-network
+    ipam:
+      config:
+        - subnet: 172.23.0.0/24
+
+volumes:
+  kaboupi_postgres:
+    driver: local
+  kaboupi_clickhouse_data:
+    driver: local
+  kaboupi_clickhouse_etc:
+    driver: local
+  kaboupi_minio:
+    driver: local
