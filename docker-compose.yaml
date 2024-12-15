@@ -51,8 +51,7 @@ services:
       - "127.0.0.1:8123:8123"
       - "127.0.0.1:9000:9000"
     volumes:
-      - ./kaboupi_clickhouse/etc:/etc/clickhouse-server
-      - ./kaboupi_clickhouse/server:/var/log/clickhouse-server
+      - ./kaboupi_clickhouse:/etc/clickhouse-server
 
   # kafka (Optional)
   kafka:
@@ -98,7 +97,7 @@ networks:
 volumes:
   kaboupi_postgres:
     driver: local
-  kaboupi_clickhouse_etc:
+  kaboupi_clickhouse:
     driver: local
   kaboupi_minio:
     driver: local
