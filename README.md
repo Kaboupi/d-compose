@@ -8,16 +8,26 @@
 5. AWS Minio:latest (аналог S3)
 
 ---
-Все креды для подключений прописаны в compose файле
-Проверка на запуск:
-
-- ClickHouse: http://localhost:8123/
-- Minio: http://localhost:9001/
-
-Процесс запуска:
+Запуск:
 ```bash
 docker compose -f docker-compose.yaml up -d
 ```
+
+Проверка на запуск:
+- ClickHouse: http://localhost:8123/
+- Minio: http://localhost:9001/
+
+Креды для подключения:
+- Postgres
+- - host: localhost
+  - port: 5432
+  - username: kaboupi
+  - password: kaboupi
+- ClickHouse
+- - host: localhost
+  - port: 8123
+  - username: admin
+  - password: kaboupi
 
 Ориентировочное потребление ресурсов:
 - `docker.raw` + 6Гб
