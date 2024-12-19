@@ -1,3 +1,4 @@
 kaboupi_clickhouse/data
 kaboupi_minio/.minio.sys
 kaboupi_postgres/
+kaboupi_grafana/

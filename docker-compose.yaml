@@ -2,15 +2,13 @@ services:
 
   # PostgreSQL DB
   postgres:
-    container_name: kaboupi-postgres
     image: postgres:13.3
+    container_name: kaboupi-postgres
     environment:
       - POSTGRES_USER=kaboupi
       - POSTGRES_PASSWORD=kaboupi
     ports:
       - '5432:5432'
-    volumes:
-      - ./kaboupi_postgres:/var/lib/postgresql/data/
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres_user -d postgres_db"]
       interval: 30s
@@ -22,36 +20,69 @@ services:
     networks:
       clickhouse-network:
         ipv4_address: 172.23.0.21
-
-  # ZooKeeper for ClickHouse
-  zookeeper:
-    image: zookeeper:3.7
-    container_name: "kaboupi-zookeeer"
-    hostname: zookeeper
-    networks:
-      clickhouse-network:
-        ipv4_address: 172.23.0.10
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-    ports:
-      - 22181:2181
-
+    volumes:
+      - ./kaboupi_postgres:/var/lib/postgresql/data/
+        
   # ClickHouse DB (clickhouse-server)
   clickhouse:
     image: clickhouse/clickhouse-server:latest
-    container_name: "kaboupi-clickhouse"
-    hostname: "kaboupi-clickhouse"
-    depends_on:
-      - zookeeper
-    networks:
-      clickhouse-network:
-        ipv4_address: 172.23.0.11
+    container_name: kaboupi-clickhouse
     ports:
       - "127.0.0.1:8123:8123"
       - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9440:9440"
+    healthcheck:
+      test: wget --no-verbose --tries=1 http://127.0.0.1:8123/ping || exit 1
     volumes:
       - ./kaboupi_clickhouse:/etc/clickhouse-server
+    networks:
+      clickhouse-network:
+        ipv4_address: 172.23.0.11
+
+  # Grafana BI
+  grafana:
+    image: grafana/grafana-enterprise
+    container_name: kaboupi-grafana
+    ports:
+      - '3000:3000'
+    environment:
+      - GF_INSTALL_PLUGINS=grafana-clickhouse-datasource
+      - GF_SECURITY_ADMIN_USER=kaboupi
+      - GF_SECURITY_ADMIN_PASSWORD=kaboupi
+    restart: unless-stopped
+    networks:
+      clickhouse-network:
+        ipv4_address: 172.23.0.21
+    volumes:
+      - ./kaboupi_grafana:/var/lib/grafana
+
+  # Minio image as S3
+  minio:
+    image: minio/minio:latest
+    container_name: kaboupi-minio
+    ports:
+      - "9001:9001"
+      - "9003:9000"
+    environment:
+      MINIO_ROOT_USER: kaboupi
+      MINIO_ROOT_PASSWORD: kaboupipass
+    command: server /data --console-address ":9001"
+    volumes:
+      - ./kaboupi_minio:/data
+
+  # ZooKeeper for Kafka (Optional)
+  zookeeper:
+    image: zookeeper:3.7
+    container_name: "kaboupi-zookeeper"
+    hostname: kaboupi-zookeeper
+    ports:
+      - 22181:2181
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      clickhouse-network:
+        ipv4_address: 172.23.0.10
 
   # # Apache Kafka (Optional)
   # kafka:
@@ -73,20 +104,6 @@ services:
   #     KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
   #     KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
 
-  # Minio image as S3
-  minio:
-    image: minio/minio:latest
-    container_name: kaboupi-minio
-    ports:
-      - "9001:9001"
-      - "9003:9000"
-    environment:
-      MINIO_ROOT_USER: kaboupi
-      MINIO_ROOT_PASSWORD: kaboupipass
-    command: server /data --console-address ":9001"
-    volumes:
-      - ./kaboupi_minio:/data
-
 networks:
   clickhouse-network:
     name: clickhouse-network
@@ -100,4 +117,6 @@ volumes:
   kaboupi_clickhouse:
     driver: local
   kaboupi_minio:
+    driver: local
+  kaboupi_grafana:
     driver: local
