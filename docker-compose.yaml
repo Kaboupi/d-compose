@@ -17,8 +17,9 @@ services:
     restart: unless-stopped
     tty: true
     stdin_open: true
-    volumes:
-      - ./kaboupi_postgres:/var/lib/postgresql/data/
+    # # Включить для PV к данным постгреса
+    # volumes:
+    #   - ./kaboupi_postgres:/var/lib/postgresql/data/
         
   # ClickHouse DB (clickhouse-server)
   clickhouse:
@@ -52,6 +53,8 @@ services:
         ipv4_address: 172.23.0.21
     volumes:
       - ./kaboupi_grafana:/var/lib/grafana
+      - ./kaboupi_grafana-provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ./kaboupi_grafana-provisioning/datasources:/etc/grafana/provisioning/datasources
 
   # Minio image as S3
   minio:
@@ -64,8 +67,9 @@ services:
       MINIO_ROOT_USER: kaboupi
       MINIO_ROOT_PASSWORD: kaboupipass
     command: server /data --console-address ":9001"
-    volumes:
-      - ./kaboupi_minio:/data
+    # # Включить для PV к данным Object Storage
+    # volumes:
+    #   - ./kaboupi_minio:/data
 
   # ZooKeeper for Kafka (Optional)
   zookeeper:
@@ -109,11 +113,12 @@ networks:
         - subnet: 172.23.0.0/24
 
 volumes:
-  kaboupi_postgres:
-    driver: local
+  # # Включить для PV
+  # kaboupi_postgres:
+  #   driver: local
+  # kaboupi_minio:
+  #   driver: local
   kaboupi_clickhouse:
-    driver: local
-  kaboupi_minio:
     driver: local
   kaboupi_grafana:
     driver: local

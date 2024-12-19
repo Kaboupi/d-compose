@@ -1,0 +1,30 @@
+apiVersion: 1
+
+datasources:
+  
+  - name: kaboupi-postgresql
+    type: postgres
+    url: 192.168.0.160:5432
+    user: kaboupi
+    secureJsonData:
+      password: 'kaboupi'
+    jsonData:
+      database: adb
+      sslmode: 'disable'
+      maxOpenConns: 100
+      maxIdleConns: 100
+      maxIdleConnsAuto: true
+      connMaxLifetime: 14400
+      postgresVersion: 1303
+      timescaledb: false
+  
+  - name: kaboupi-clickhouse
+    type: grafana-clickhouse-datasource
+    jsonData:
+      host: 172.23.0.11
+      port: 9000
+      username: admin
+      tlsSkipVerify: false
+    secureJsonData:
+      password: kaboupi
+

@@ -7,7 +7,7 @@
 ### Описание репозитория
 
 Репозиторий представляет собой стартовый набор сервисов для практики в области инженерии данных: СУБД, BI, брокеры, Object Storage.
-Проект настроен на комфортный запуск всех сервисов одной командой, по дефолту прописаны PV для сохранения дашбордов графаны и данных Postgres.
+Проект настроен на комфортный запуск всех сервисов одной командой, по дефолту прописаны PV для сохранения подключений к Grafana.
 
 В **docker-compose.yaml** собраны следующие образы:
 1. PostgreSQL:13.3
@@ -15,7 +15,7 @@
 3. ZooKeeper:3.7
 4. Kafka:latest (Закомменчен)
 5. Minio:latest (аналог S3)
-6. Grafana Enterprise (BI-инструмент для визуализации)
+6. Grafana Enterprise
 
 Для обеих СУБД присутствует healthcheck
 
@@ -56,5 +56,6 @@ docker restart kaboupi-clickhouse
 - **Clickhouse**: [http://localhost:8123/](http://localhost:8123/)
 - **Minio**: [http://localhost:9001/](http://localhost:9001/)
 - **Grafana**: [http://localhost:3000/](http://localhost:3000/)
+- - В Data Sources должны присутствовать коннекты к постгресу и клику с соответствующими названиями. Конфигурации хранятся в `kaboupi_grafana-provisioning/datasources/datasources.yaml`
 
 5. Радуемся поднятым сервисам! :)
