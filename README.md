@@ -6,6 +6,7 @@
 3. Хранилище ZooKeeper:3.7
 4. Брокер Kafka:latest (Закомменчен)
 5. AWS Minio:latest (аналог S3)
+6. Grafaba Enterprise (BI-инструмент для визуализации)
 
 ---
 Запуск:
@@ -40,6 +41,7 @@ docker compose restart
 Проверка на запуск:
 - ClickHouse: http://localhost:8123/
 - Minio: http://localhost:9001/
+- Grafana: http://localhost:3000/
 
 Креды для подключения:
 - Postgres
