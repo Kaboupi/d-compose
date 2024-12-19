@@ -1,3 +1,6 @@
+![](https://img.shields.io/badge/-Docker-61DAFB?logo=docker&logoColor=white&style=plastic)
+![](https://img.shields.io/badge/-Yaml-CD5C5C?logo=yaml&logoColor=red&style=plastic)
+
 # D-compose 🐳
 
 Стэк из сервисов для практики в области Data Engineering / DevOps.
