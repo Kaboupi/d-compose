@@ -9,7 +9,7 @@ datasources:
     secureJsonData:
       password: 'kaboupi'
     jsonData:
-      database: adb
+      database: postgres
       sslmode: 'disable'
       maxOpenConns: 100
       maxIdleConns: 100
