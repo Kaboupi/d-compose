@@ -17,9 +17,6 @@ services:
     restart: unless-stopped
     tty: true
     stdin_open: true
-    networks:
-      clickhouse-network:
-        ipv4_address: 172.23.0.21
     volumes:
       - ./kaboupi_postgres:/var/lib/postgresql/data/
         

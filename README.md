@@ -1,25 +1,23 @@
-# Описание docker-compose.yaml
----
-В docker-compose.yaml собраны следующие образы:
-1. СУБД PostgreSQL:13.3
-2. СУБД ClickHouse:latest
-3. Хранилище ZooKeeper:3.7
-4. Брокер Kafka:latest (Закомменчен)
-5. AWS Minio:latest (аналог S3)
-6. Grafaba Enterprise (BI-инструмент для визуализации)
+# d-compose
 
----
-Запуск:
-1. cd в директорию проекта
-2. Поднимаем образы через compose
-```bash
-docker compose up -d
-```
-3. После первичного запуска необходимо сделать рестарт, чтобы ClickHouse подцепил конфиги из `kaboupi_clickhouse/`:
-```bash
-docker compose restart
-```
-4. Радуемся поднятым сервисам!
+### Документация по сервисам
+
+todo
+
+### Описание репозитория
+
+Репозиторий представляет собой стартовый набор сервисов для практики в области инженерии данных: СУБД, BI, брокеры, Object Storage.
+Проект настроен на комфортный запуск всех сервисов одной командой, по дефолту прописаны PV для сохранения дашбордов графаны и данных Postgres.
+
+В **docker-compose.yaml** собраны следующие образы:
+1. PostgreSQL:13.3
+2. ClickHouse:latest
+3. ZooKeeper:3.7
+4. Kafka:latest (Закомменчен)
+5. Minio:latest (аналог S3)
+6. Grafana Enterprise (BI-инструмент для визуализации)
+
+Для обеих СУБД присутствует healthcheck
 
 > ❗Если хотите добавить PV, то нужно прописать их напрямую в `volumes:`, например:
 > ```yaml
@@ -29,7 +27,7 @@ docker compose restart
 >     ...
 >     volumes:
 >       - ./kaboupi_clickhouse:/etc/clickhouse-server
->       - ./my_custom_dir:/var/lib/clickhouse  # эта строчка добавит в вашу локальную! директорию my_custom_dir все данные клика
+>       - ./my_custom_dir:/var/lib/clickhouse  # эта строчка добавит в вашу локальную директорию my_custom_dir все данные клика
 > 
 > volumes:
 >   kaboupi_clickhouse:
@@ -38,24 +36,25 @@ docker compose restart
 >     driver: local
 > ```
 
-Проверка на запуск:
-- ClickHouse: http://localhost:8123/
-- Minio: http://localhost:9001/
-- Grafana: http://localhost:3000/
+### Процедура запуска
+1. Переходим в директорию проекта
+Если открыли в VSCode, то просто открываем `<Ctrl+J>`, если же из терминала (cmd/pwsh/terminal), то
+```bash
+cd /this/project/parent/folder
+git clone <this-project-url>
+cd d-compose
+```
+2. Пуллим образы и поднимаем контейнеры
+```bash
+docker compose up -d
+```
+3. После первичного запуска необходимо сделать рестарт сервиса `clickhouse-server`, чтобы он подцепил конфиги пользователей и основных настроек из `kaboupi_clickhouse/*.xml`:
+```bash
+docker restart kaboupi-clickhouse
+```
+4. Проверка на запуск
+- **Clickhouse**: [http://localhost:8123/](http://localhost:8123/)
+- **Minio**: [http://localhost:9001/](http://localhost:9001/)
+- **Grafana**: [http://localhost:3000/](http://localhost:3000/)
 
-Креды для подключения:
-- Postgres
-- - host: localhost
-  - port: 5432
-  - username: kaboupi
-  - password: kaboupi
-- ClickHouse
-- - host: localhost
-  - port: 8123
-  - username: admin
-  - password: kaboupi
-
-Ориентировочное потребление ресурсов:
-- `docker.raw` + 6Гб
-- RAM ~2-5Гб
-- Диск ~50-100Мб
+5. Радуемся поднятым сервисам! :)
