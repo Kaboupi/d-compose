@@ -24,7 +24,9 @@ c1cab1693d48   zookeeper:3.7                         "/docker-entrypoint.…"   
 
 ### 1.2 Data Sources
 
-Логинимся в Grafana (kaboupi/kaboupi), переходим в **Data Sources** ![Data Sources](image/grafana/grafana-data_sources.png)
+Логинимся в Grafana (kaboupi/kaboupi), переходим в **Data Sources**
+
+![Data Sources](image/grafana/grafana-data_sources.png)
 
 ### 1.3 Создаём подключение
 
