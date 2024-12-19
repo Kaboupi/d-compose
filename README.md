@@ -2,7 +2,7 @@
 
 ### Документация по сервисам
 
-todo
+- [Документация](https://github.com/Kaboupi/d-compose/blob/master/docs/list.md)
 
 ### Описание репозитория
 
