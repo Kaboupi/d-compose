@@ -1,5 +1,9 @@
-![](https://img.shields.io/badge/-Docker-61DAFB?logo=docker&logoColor=white&style=plastic)
-![](https://img.shields.io/badge/-Yaml-CD5C5C?logo=yaml&logoColor=red&style=plastic)
+![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
+![Postgres](https://img.shields.io/badge/postgres-%23316192.svg?style=for-the-badge&logo=postgresql&logoColor=white)
+![ClickHouse](https://img.shields.io/badge/ClickHouse-FFCC01?style=for-the-badge&logo=clickhouse&logoColor=white)
+![Apache](https://img.shields.io/badge/apache-%23D42029.svg?style=for-the-badge&logo=apache&logoColor=white)
+![Grafana](https://img.shields.io/badge/grafana-%23F46800.svg?style=for-the-badge&logo=grafana&logoColor=white)
+
 
 # D-compose 🐳
 
@@ -9,20 +13,21 @@
 
 В [**docker-compose.yaml**](https://github.com/Kaboupi/d-compose/blob/master/docker-compose.yaml) собраны следующие образы:
 
-1. PostgreSQL:13.3
-2. ClickHouse:latest
-3. ZooKeeper:3.7
-4. Kafka:latest (Закомменчен)
-5. Minio:latest (аналог S3)
-6. Grafana Enterprise:latest
+|Номер|Docker image|TAG|Описание|
+|---|---|---|---|
+|1|PostgreSQL|13.3|OLTP СУБД|
+|2|ClickHouse|latest|OLAP СУБД|
+|3|Apache Airflow|2.10.4|ETL|
+|4|Apache Kafka|latest|Брокер сообщений|
+|5|Apache Zookeeper|3.7|Координация/Управление|
+|6|Minio|latest|Object Storage|
+|7|Grafana Enterprise|latest|BI-инструмент|
 
 <!--Установка-->
 
 ## Установка (Windows / Linux)
 
 **Linux**:
-
-![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
 
 Для поднятия контейнеров на Linux должны быть установлены **Docker compose** и все необходимые зависимости. Полная документация по установке указана в [официальной документации](https://docs.docker.com/compose/install/linux/). Также можно установить [Desktop версию для Linux](https://docs.docker.com/desktop/).
 
