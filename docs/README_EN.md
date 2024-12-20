@@ -73,6 +73,7 @@ docker restart kaboupi-clickhouse
 6. Verify the functionality of the main services
 
 - **Clickhouse**: [http://localhost:8123/](http://localhost:8123/)
+- **Airflow**: [http://localhost:8080/](http://localhost:8080/)
 - **Minio**: [http://localhost:9001/](http://localhost:9001/)
 - **Grafana**: [http://localhost:3000/](http://localhost:3000/)
 - - In **Data Sources**, there should be connections to the Postgres DB (kaboupi-postgres) and Clickhouse DB (kaboupi-clickhouse). Configurations are stored in `kaboupi_grafana-provisioning/datasources/datasources.yaml`.

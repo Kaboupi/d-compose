@@ -74,6 +74,7 @@ docker restart kaboupi-clickhouse
 6. Провести проверку работоспособности основных сервисов
 
 - **Clickhouse**: [http://localhost:8123/](http://localhost:8123/)
+- **Airflow**: [http://localhost:8080/](http://localhost:8080/)
 - **Minio**: [http://localhost:9001/](http://localhost:9001/)
 - **Grafana**: [http://localhost:3000/](http://localhost:3000/)
 - - В **Data Sources** должны присутствовать подключения к СУБД Postgres (kaboupi-postgres) и СУБД Clickhouse (kaboupi-clickhouse). Конфигурации хранятся в `kaboupi_grafana-provisioning/datasources/datasources.yaml`
