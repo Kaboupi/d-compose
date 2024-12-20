@@ -39,7 +39,7 @@ jobs:
 
       - name: Start healthchecks
         run: |
-          for service in airflow-webserver airflow-scheduler airflow-worker clickhouse postgres; do
+          for service in kaboupi-af-webserver kaboupi-af-scheduler kaboupi-af-worker kaboupi-clickhouse kaboupi-postgres; do
             echo "Waiting for $service to be healthy..."
             until [ "$(docker inspect -f '{{.State.Health.Status}}' ${service})" == "healthy" ]; do
               sleep 5
