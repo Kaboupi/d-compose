@@ -12,17 +12,45 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    services:
+      docker:
+        image: docker:latest
+        options: --privileged
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Set up Docker Build
+      - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
+      
+      - name: Build Docker images
+        run: |
+          docker-compose -f docker-compose.yaml build
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          file: ./docker-compose.yaml
-          push: true
-          tags: kaboupi/d-compose:latest
+      - name: Run airflow-init
+        run: |
+          docker-compose -f docker-compose.yaml up airflow-init
+          docker-compose -f docker-compose.yaml logs airflow-init
+
+      - name: Start all services
+        run: |
+          for service in airflow-webserver airflow-scheduler airflow-worker clickhouse postgres; do
+            echo "Waiting for $service to be healthy..."
+            until [ "$(docker inspect -f '{{.State.Health.Status}}' ${service})" == "healthy" ]; do
+              sleep 5
+            done
+          done
+      
+      - name: Check healthy
+        run: |
+          echo "All services are up and healthy!"
+
+      - name: Push Docker images to Docker Hub
+        run: |
+          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+          docker-compose -f docker-compose.yaml push
+
+      - name: Clean up
+        run: |
+          docker-compose -f docker-compose.yaml down
