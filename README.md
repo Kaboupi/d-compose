@@ -8,7 +8,7 @@
 
 > Follow this link to view the description in English - [README_EN.md](https://github.com/Kaboupi/d-compose/tree/master/docs/README_EN.md)
 
-Стэк из сервисов для практики в области Data Engineering / DevOps.
+Стэк из сервисов для практики в области Data Engineering / DevOps / DBA.
 
 Проект настроен на комфортный и быстрый запуск всех сервисов одной командой.
 

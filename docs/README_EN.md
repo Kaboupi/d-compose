@@ -7,7 +7,7 @@
 
 # D-compose 🐳
 
-A stack of services for practicing Data Engineering / DevOps.
+A stack of services for practicing Data Engineering / DevOps / DBA.
 
 The project is configured for a comfortable and quick launch of all services with a single *docker compose* command.
 
