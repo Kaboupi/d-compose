@@ -1,4 +1,11 @@
-kaboupi_clickhouse/data
-kaboupi_minio/.minio.sys
-kaboupi_postgres/
+*.pyc
+*.pyd
+*.pyo
+*/__pycache__
+kaboupi_airflow/logs/
+kaboupi_airflow/plugins/
+kaboupi_airflow/postgres-db-volume/
 kaboupi_grafana/
+kaboupi_minio/
+kaboupi_postgres/
+venv

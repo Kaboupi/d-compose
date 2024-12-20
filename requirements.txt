@@ -1,0 +1,6 @@
+airflow-providers-clickhouse
+numpy
+pandas
+psycopg2-binary
+requests
+sqlalchemy
