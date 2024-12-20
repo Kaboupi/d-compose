@@ -32,8 +32,12 @@ jobs:
         run: |
           docker compose -f docker-compose.yaml up airflow-init
           docker compose -f docker-compose.yaml logs airflow-init
-
+        
       - name: Start all services
+        run: |
+          docker compose -f docker-compose.yaml up -d
+
+      - name: Start healthchecks
         run: |
           for service in airflow-webserver airflow-scheduler airflow-worker clickhouse postgres; do
             echo "Waiting for $service to be healthy..."
@@ -41,10 +45,6 @@ jobs:
               sleep 5
             done
           done
-      
-      - name: Check healthy
-        run: |
-          echo "All services are up and healthy!"
 
       - name: Push Docker images to Docker Hub
         run: |
