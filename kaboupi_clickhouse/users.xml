@@ -18,14 +18,14 @@
             </networks>
             <quota>default</quota>
         </default>
-        <admin>
+        <kaboupi>
             <password>kaboupi</password>
             <profile>default</profile>
             <networks>
                 <ip>::/0</ip>
             </networks>
             <quota>default</quota>
-        </admin>
+        </kaboupi>
     </users>
 
     <quotas>
