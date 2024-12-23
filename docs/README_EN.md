@@ -98,6 +98,8 @@ Healthcheck is included for both databases, and by default, PVs exist only for G
 >     driver: local
 > ```
 
+Connection credentials are listed in [.env](https://github.com/Kaboupi/d-compose/blob/master/.env) file
+
 <!--Документация-->
 
 ## Documentation

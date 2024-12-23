@@ -99,6 +99,8 @@ docker restart kaboupi-clickhouse
 >     driver: local
 > ```
 
+Параметры для подключения прописаны в [.env](https://github.com/Kaboupi/d-compose/blob/master/.env) файле
+
 <!--Документация-->
 
 ## Документация

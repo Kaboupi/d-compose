@@ -23,7 +23,7 @@ datasources:
     jsonData:
       host: 172.23.0.11
       port: 9000
-      username: admin
+      username: kaboupi
       tlsSkipVerify: false
     secureJsonData:
       password: kaboupi
