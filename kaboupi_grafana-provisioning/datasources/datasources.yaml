@@ -4,7 +4,7 @@ datasources:
   
   - name: kaboupi-postgresql
     type: postgres
-    url: 192.168.0.160:5432
+    url: 172.23.0.21:5432
     user: kaboupi
     secureJsonData:
       password: 'kaboupi'
