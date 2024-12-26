@@ -261,7 +261,9 @@ services:
     # volumes:
     #   - ./kaboupi_postgres:/var/lib/postgresql/data/
     networks:
-      - clickhouse-network
+      clickhouse-network:
+        ipv4_address: 172.23.0.21
+      
         
   # ClickHouse DB (clickhouse-server)
   clickhouse:
@@ -290,13 +292,13 @@ services:
       - GF_SECURITY_ADMIN_USER=${GF_SECURITY_ADMIN_USER:-kaboupi}
       - GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD:-kaboupi}
     restart: unless-stopped
-    networks:
-      clickhouse-network:
-        ipv4_address: 172.23.0.21
     volumes:
       - ./kaboupi_grafana:/var/lib/grafana
       - ./kaboupi_grafana-provisioning/dashboards:/etc/grafana/provisioning/dashboards
       - ./kaboupi_grafana-provisioning/datasources:/etc/grafana/provisioning/datasources
+    networks:
+      clickhouse-network:
+        ipv4_address: 172.23.0.7
 
   # Minio image as S3
   minio:
