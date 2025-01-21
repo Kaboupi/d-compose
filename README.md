@@ -21,7 +21,7 @@
 |3|Apache Airflow|apache/airflow:2.10.4|ETL|
 |4|Apache Kafka|confluentinc/cp-kafka:latest|Брокер сообщений|
 |5|Apache Zookeeper|zookeeper:3.7|Координация/Управление|
-|6|Apache Nifi|apache/nifi:latest|ETL|
+|6|Apache Nifi|apache/nifi:1.28.1|ETL|
 |7|Minio|minio/minio:latest|Object Storage|
 |8|Grafana Enterprise|grafana/grafana-enterprise:latest|BI-инструмент|
 
