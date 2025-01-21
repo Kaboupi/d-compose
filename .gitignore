@@ -2,10 +2,10 @@
 *.pyd
 *.pyo
 */__pycache__
-kaboupi_airflow/logs/
-kaboupi_airflow/plugins/
-kaboupi_airflow/postgres-db-volume/
-kaboupi_grafana/
-kaboupi_minio/
-kaboupi_postgres/
+airflow/logs/
+airflow/plugins/
+airflow/postgres-db-volume/
+grafana/
+minio/
+postgres/
 venv

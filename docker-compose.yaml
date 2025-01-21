@@ -11,7 +11,7 @@ x-airflow-common:
     AIRFLOW__CELERY__BROKER_URL: redis://:@redis:6379/0
     AIRFLOW__CORE__FERNET_KEY: ''
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
-    AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+    AIRFLOW__CORE__LOAD_EXAMPLES: '${AIRFLOW__CORE__LOAD_EXAMPLES:-false}'
     AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session'
     AIRFLOW__SCHEDULER__ENABLE_HEALTH_CHECK: 'true'
     _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
@@ -29,14 +29,14 @@ x-airflow-common:
     postgres-af:
       condition: service_healthy
   networks:
-    - airflow-network
+    - network-airflow
 
 services:
   
   # Postgres metadata database for airflow
   postgres-af:
     image: postgres:13
-    container_name: kaboupi-af-postgres
+    container_name: ${OWNER_NAME:-kaboupi}-af-postgres
     hostname: postgres
     environment:
       POSTGRES_USER: airflow
@@ -51,13 +51,13 @@ services:
       start_period: 5s
     restart: always
     networks:
-      - airflow-network
+      - network-airflow
 
   
   # Redis for airflow
   redis:
     image: redis:7.2-bookworm
-    container_name: kaboupi-af-redis
+    container_name: ${OWNER_NAME:-kaboupi}-af-redis
     hostname: redis
     expose:
       - 6379
@@ -69,16 +69,16 @@ services:
       start_period: 30s
     restart: always
     networks:
-      - airflow-network
+      - network-airflow
   
   # Airflow webserver
   airflow-webserver:
     <<: *airflow-common
-    container_name: kaboupi-af-webserver
+    container_name: ${OWNER_NAME:-kaboupi}-af-webserver
     hostname: airflow-webserver
     command: webserver
     ports:
-      - "8080:8080"
+      - "${AIRFLOW_WEBSERVER_PORT:-8080}:8080"
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
       interval: 30s
@@ -91,12 +91,12 @@ services:
       airflow-init:
         condition: service_completed_successfully
     networks:
-      - airflow-network
+      - network-airflow
 
   # Airflow scheduler
   airflow-scheduler:
     <<: *airflow-common
-    container_name: kaboupi-af-scheduler
+    container_name: ${OWNER_NAME:-kaboupi}-af-scheduler
     hostname: airflow-scheduler
     command: scheduler
     healthcheck:
@@ -111,12 +111,12 @@ services:
       airflow-init:
         condition: service_completed_successfully
     networks:
-      - airflow-network
+      - network-airflow
 
   # Airflow worker
   airflow-worker:
     <<: *airflow-common
-    container_name: kaboupi-af-worker
+    container_name: ${OWNER_NAME:-kaboupi}-af-worker
     hostname: airflow-worker
     command: celery worker
     healthcheck:
@@ -136,12 +136,12 @@ services:
       airflow-init:
         condition: service_completed_successfully
     networks:
-      - airflow-network
+      - network-airflow
 
   # Airflow triggerer
   airflow-triggerer:
     <<: *airflow-common
-    container_name: kaboupi-af-triggerer
+    container_name: ${OWNER_NAME:-kaboupi}-af-triggerer
     hostname: airflow-triggerer
     command: triggerer
     healthcheck:
@@ -156,12 +156,12 @@ services:
       airflow-init:
         condition: service_completed_successfully
     networks:
-      - airflow-network
+      - network-airflow
 
   # Airflow init
   airflow-init:
     <<: *airflow-common
-    container_name: kaboupi-af-init
+    container_name: ${OWNER_NAME:-kaboupi}-af-init
     hostname: airflow-init
     entrypoint: /bin/bash
     command:
@@ -223,7 +223,7 @@ services:
     volumes:
       - ${AIRFLOW_PROJ_DIR:-.}:/sources
     networks:
-      - airflow-network
+      - network-airflow
 
   airflow-cli:
     <<: *airflow-common
@@ -237,18 +237,18 @@ services:
       - -c
       - airflow
     networks:
-      - airflow-network
+      - network-airflow
 
   # PostgreSQL DB
   postgres:
     image: postgres:13.3
-    container_name: kaboupi-postgres
-    hostname: kaboupi-postgres
+    container_name: ${OWNER_NAME:-kaboupi}-postgres
+    hostname: ${OWNER_NAME:-kaboupi}-postgres
     environment:
       - POSTGRES_USER=${POSTGRES_USER:-kaboupi}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-kaboupi}
     ports:
-      - '5432:5432'
+      - '${POSTGRES_PORT:-5432}:5432'
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres_user -d postgres_db"]
       interval: 30s
@@ -259,53 +259,53 @@ services:
     stdin_open: true
     # # Включить для PV к данным постгреса
     # volumes:
-    #   - ./kaboupi_postgres:/var/lib/postgresql/data/
+    #   - ./postgres:/var/lib/postgresql/data/
     networks:
-      clickhouse-network:
+      network-main:
         ipv4_address: 172.23.0.21
       
         
   # ClickHouse DB (clickhouse-server)
   clickhouse:
     image: clickhouse/clickhouse-server:latest
-    container_name: kaboupi-clickhouse
+    container_name: ${OWNER_NAME:-kaboupi}-clickhouse
     ports:
-      - "8123:8123"
+      - "${CLICKHOUSE_PORT:-8123}:8123"
       - "9000:9000"
       - "9440:9440"
     healthcheck:
       test: wget --no-verbose --tries=1 http://127.0.0.1:8123/ping || exit 1
     volumes:
-      - ./kaboupi_clickhouse:/etc/clickhouse-server
+      - ./clickhouse:/etc/clickhouse-server
     networks:
-      clickhouse-network:
+      network-main:
         ipv4_address: 172.23.0.11
 
   # Grafana BI
   grafana:
     image: grafana/grafana-enterprise
-    container_name: kaboupi-grafana
+    container_name: ${OWNER_NAME:-kaboupi}-grafana
     ports:
-      - '3000:3000'
+      - '${GRAFANA_PORT:-3000}:3000'
     environment:
       - GF_INSTALL_PLUGINS=grafana-clickhouse-datasource
       - GF_SECURITY_ADMIN_USER=${GF_SECURITY_ADMIN_USER:-kaboupi}
       - GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD:-kaboupi}
     restart: unless-stopped
     volumes:
-      - ./kaboupi_grafana:/var/lib/grafana
-      - ./kaboupi_grafana-provisioning/dashboards:/etc/grafana/provisioning/dashboards
-      - ./kaboupi_grafana-provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ./grafana:/var/lib/grafana
+      - ./grafana-provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ./grafana-provisioning/datasources:/etc/grafana/provisioning/datasources
     networks:
-      clickhouse-network:
+      network-main:
         ipv4_address: 172.23.0.7
 
   # Minio image as S3
   minio:
     image: minio/minio:latest
-    container_name: kaboupi-minio
+    container_name: ${OWNER_NAME:-kaboupi}-minio
     ports:
-      - "9001:9001"
+      - "${MINIO_PORT:-9001}:9001"
       - "9003:9000"
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-kaboupi}
@@ -313,66 +313,87 @@ services:
     command: server /data --console-address ":9001"
     # # Включить для PV к данным Object Storage
     # volumes:
-    #   - ./kaboupi_minio:/data
+    #   - ./minio:/data
 
   # ZooKeeper for Kafka (Optional)
   zookeeper:
     image: zookeeper:3.7
-    container_name: "kaboupi-zookeeper"
-    hostname: kaboupi-zookeeper
+    container_name: ${OWNER_NAME:-kaboupi}-zookeeper
+    hostname: ${OWNER_NAME:-kaboupi}-zookeeper
     ports:
-      - 22181:2181
+      - ${ZK_OUT_PORT:-22181}:${ZK_CLIENT_PORT:-2181}
     environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_CLIENT_PORT: ${ZK_CLIENT_PORT:-2181}
       ZOOKEEPER_TICK_TIME: 2000
     networks:
-      clickhouse-network:
+      network-main:
         ipv4_address: 172.23.0.10
 
-  # # Apache Kafka (Optional)
-  # kafka:
-  #   image: confluentinc/cp-kafka:latest
-  #   container_name: kaboupi-kafka
-  #   hostname: kaboupi-kafka
-  #   depends_on:
-  #     - zookeeper
-  #   networks:
-  #     clickhouse-network:
-  #       ipv4_address: 172.23.0.20
-  #   ports:
-  #     - 29092:29092
-  #   environment:
-  #     KAFKA_BROKER_ID: 1
-  #     KAFKA_ZOOKEEPER_CONNECT: 172.23.0.10:2181
-  #     KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
-  #     KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-  #     KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-  #     KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+  # Apache Kafka (Optional)
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    container_name: ${OWNER_NAME:-kaboupi}-kafka
+    hostname: ${OWNER_NAME:-kaboupi}-kafka
+    depends_on:
+      - zookeeper
+    networks:
+      network-main:
+        ipv4_address: 172.23.0.20
+    ports:
+      - 29092:29092
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 172.23.0.10:${ZK_CLIENT_PORT:-2181}
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  nifi:
+    image: apache/nifi:1.28.1
+    container_name: ${OWNER_NAME:-kaboupi}-nifi
+    hostname: ${OWNER_NAME:-kaboupi}-nifi
+    depends_on:
+      - zookeeper
+    ports:
+      - "${NIFI_PORT:-8090}:8080"
+      - "8181:8181"
+      - "8443:8443"
+      - "10000:10000"
+    environment:
+      - NIFI_WEB_HTTP_PORT=8080
+      - NIFI_WEB_PROXY_HOST=localhost
+      - NIFI_ZOOKEEPER_CONNECT_STRING=172.23.0.10:${ZK_CLIENT_PORT:-2181}
+    networks:
+      network-main:
+        ipv4_address: 172.23.0.30
+    # volumes:
+    #   - ./nifi/logs:/opt/nifi/nifi-current/logs
+    #   - ./nifi/conf:/opt/nifi/nifi-current/conf
+
 
 networks:
-  clickhouse-network:
-    name: clickhouse-network
+  network-main:
+    name: network-main
+    driver: bridge
     ipam:
       config:
         - subnet: 172.23.0.0/24
-  airflow-network:
-    name: airflow-network
+  network-airflow:
+    name: network-airflow
 
 
 volumes:
-  kaboupi_airflow:
-  kaboupi_airflow_postgres:
+  airflow:
+  airflow_postgres:
     driver: local
     driver_opts:
       type: none
-      device: ./kaboupi_airflow/postgres-db-volume
+      device: ./airflow/postgres-db-volume
       o: bind
-  # # Включить для PV
-  # kaboupi_postgres:
-  #   driver: local
-  # kaboupi_minio:
-  #   driver: local
-  kaboupi_clickhouse:
+  nifi:
     driver: local
-  kaboupi_grafana:
+  clickhouse:
+    driver: local
+  grafana:
     driver: local

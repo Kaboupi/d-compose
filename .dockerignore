@@ -3,4 +3,7 @@ venv
 *.pyc
 *.pyo
 *.pyd
-kaboupi_*/
+airflow/
+clickhouse/
+docs/
+grafana*/

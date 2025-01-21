@@ -16,13 +16,14 @@
 
 |Номер|Docker image|TAG|Описание|
 |---|---|---|---|
-|1|PostgreSQL|13.3|OLTP СУБД|
-|2|ClickHouse|latest|OLAP СУБД|
-|3|Apache Airflow|2.10.4|ETL|
-|4|Apache Kafka|latest|Брокер сообщений|
-|5|Apache Zookeeper|3.7|Координация/Управление|
-|6|Minio|latest|Object Storage|
-|7|Grafana Enterprise|latest|BI-инструмент|
+|1|PostgreSQL|postgres:13.3|OLTP СУБД|
+|2|ClickHouse|clickhouse/clickhouse-server:latest|OLAP СУБД|
+|3|Apache Airflow|apache/airflow:2.10.4|ETL|
+|4|Apache Kafka|confluentinc/cp-kafka:latest|Брокер сообщений|
+|5|Apache Zookeeper|zookeeper:3.7|Координация/Управление|
+|6|Apache Nifi|apache/nifi:latest|ETL|
+|7|Minio|minio/minio:latest|Object Storage|
+|8|Grafana Enterprise|grafana/grafana-enterprise:latest|BI-инструмент|
 
 <!--Установка-->
 
