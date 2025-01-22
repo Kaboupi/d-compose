@@ -42,8 +42,8 @@ services:
       POSTGRES_USER: airflow
       POSTGRES_PASSWORD: airflow
       POSTGRES_DB: airflow
-    # volumes:
-    #   - ${AIRFLOW_PROJ_DIR:-.}/postgres-db-volume:/var/lib/postgresql/data
+    volumes:
+      - ${AIRFLOW_PROJ_DIR:-.}/postgres-db-volume:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "airflow"]
       interval: 10s
@@ -408,6 +408,12 @@ networks:
 
 volumes:
   airflow:
+  airflow_postgres:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./airflow/postgres-db-volume
+      o: bind
   nifi:
     driver: local
   clickhouse:
