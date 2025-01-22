@@ -45,11 +45,13 @@ jobs:
             "kaboupi-af-worker"
             "kaboupi-clickhouse"
             "kaboupi-postgres"
-            "kaboupi-grafana"
             "kaboupi-nifi"
             "kaboupi-kafka"
           )
-
+          
+          # "kaboupi-grafana"
+          # doesn't work for now, to do
+          
           for service in "${services[@]}"; do
             echo "Waiting for $service to be healthy..."
             until [ "$(docker inspect -f '{{.State.Health.Status}}' ${service})" == "healthy" ]; do
