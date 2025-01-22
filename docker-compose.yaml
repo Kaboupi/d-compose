@@ -1,8 +1,8 @@
 # Airflow common specs
 x-airflow-common:
   &airflow-common
-  # image: apache/airflow:2.10.4
-  build: .
+  image: apache/airflow:2.10.4
+  # build: .
   environment:
     &airflow-common-env
     AIRFLOW__CORE__EXECUTOR: CeleryExecutor
@@ -115,7 +115,7 @@ services:
 
   # Airflow worker
   airflow-worker:
-    <<: *airflow-common
+    build: .
     container_name: ${OWNER_NAME:-kaboupi}-af-worker
     hostname: airflow-worker
     command: celery worker

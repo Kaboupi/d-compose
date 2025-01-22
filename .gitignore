@@ -2,11 +2,11 @@
 *.pyd
 *.pyo
 */__pycache__
-airflow/logs/
-airflow/plugins/
-airflow/postgres-db-volume/
+*/logs/
+*/plugins/
+*/postgres-db-volume/
 grafana/
 minio/
+nifi
 postgres/
 venv
-nifi
