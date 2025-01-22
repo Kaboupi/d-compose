@@ -25,6 +25,8 @@
 |7|Minio|minio/minio:latest|Object Storage|
 |8|Grafana Enterprise|grafana/grafana-enterprise:latest|BI-инструмент|
 
+> Основные параметры для подключения и настраиваемые конфигурации прописаны в **[.env](https://github.com/Kaboupi/d-compose/blob/master/.env)** файле
+
 <!--Установка-->
 
 ## Установка (Windows / Linux)
@@ -58,13 +60,26 @@ docker compose up -d
 
 4. Провести проверку работоспособности основных сервисов
 
+```bash
+docker ps --format '{{.Status}}\t{{.Names}}'
+```
+
+У всех контейнеров должен быть статус **Up ... (healthy)**
+
+<!--Взаимодействие с сервисами-->
+
+## Взаимодействие с сервисами
+
+Ниже представлен список веб-интерфейсов, доступных по дефолту:
+
 - **Clickhouse**: [http://localhost:8123/](http://localhost:8123/)
-- **Airflow**: [http://localhost:8080/](http://localhost:8080/)
+- **Apache Airflow**: [http://localhost:8080/](http://localhost:8080/)
+- **Apache NiFi**: [http://localhost:8090/nifi](http://localhost:8090/nifi)
 - **Minio**: [http://localhost:9001/](http://localhost:9001/)
 - **Grafana**: [http://localhost:3000/](http://localhost:3000/)
 - - В **Data Sources** должны присутствовать подключения к СУБД Postgres и СУБД ClickHouse. Конфигурации хранятся в `grafana-provisioning/datasources/datasources.yaml`
 
-Для обеих СУБД присутствует healthcheck, по дефолту PV прописаны только для сохранения подключений к Grafana.
+По дефолту PV прописаны только для сохранения подключений к Grafana и метаданных Postgres для Airflow.
 
 > ❗Если хотите добавить PV, то нужно прописать их напрямую в `volumes:`, например:
 >
@@ -80,8 +95,6 @@ docker compose up -d
 >   my_custom_dir:
 >     driver: local
 > ```
-
-Параметры для подключения прописаны в **[.env](https://github.com/Kaboupi/d-compose/blob/master/.env)** файле
 
 <!--Документация-->
 
