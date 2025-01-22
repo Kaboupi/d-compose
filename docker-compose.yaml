@@ -1,8 +1,8 @@
 # Airflow common specs
 x-airflow-common:
   &airflow-common
-  image: apache/airflow:2.10.4
-  # build: .
+  # image: apache/airflow:2.10.4
+  build: .
   environment:
     &airflow-common-env
     AIRFLOW__CORE__EXECUTOR: CeleryExecutor
@@ -38,6 +38,8 @@ services:
     image: postgres:13
     container_name: ${OWNER_NAME:-kaboupi}-af-postgres
     hostname: postgres
+    ports:
+      - '5435:5432'
     environment:
       POSTGRES_USER: airflow
       POSTGRES_PASSWORD: airflow
@@ -115,7 +117,8 @@ services:
 
   # Airflow worker
   airflow-worker:
-    build: .
+    # build: .
+    <<: *airflow-common
     container_name: ${OWNER_NAME:-kaboupi}-af-worker
     hostname: airflow-worker
     command: celery worker
@@ -257,6 +260,8 @@ services:
     restart: unless-stopped
     tty: true
     stdin_open: true
+    volumes:
+      - ./init-scripts/postgres-init.sql:/docker-entrypoint-initdb.d/postgres-init.sql
     networks:
       network-main:
         ipv4_address: 172.23.0.21
@@ -278,6 +283,7 @@ services:
       start_period: 1m
     volumes:
       - ./clickhouse:/etc/clickhouse-server
+      - ./init-scripts/clickhouse-init.sql:/docker-entrypoint-initdb.d/clickhouse-init.sql
     networks:
       network-main:
         ipv4_address: 172.23.0.11
@@ -338,6 +344,12 @@ services:
     environment:
       ZOOKEEPER_CLIENT_PORT: ${ZK_CLIENT_PORT:-2181}
       ZOOKEEPER_TICK_TIME: 2000
+    healthcheck:
+      test: ["CMD", "bash", "-c", "zkCli.sh -server localhost:2181 get / | grep zookeeper.version"]
+      interval: 1m
+      timeout: 30s
+      retries: 5
+      start_period: 60s
     networks:
       network-main:
         ipv4_address: 172.23.0.10
