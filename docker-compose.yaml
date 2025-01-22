@@ -42,8 +42,8 @@ services:
       POSTGRES_USER: airflow
       POSTGRES_PASSWORD: airflow
       POSTGRES_DB: airflow
-    volumes:
-      - ${AIRFLOW_PROJ_DIR:-.}/postgres-db-volume:/var/lib/postgresql/data
+    # volumes:
+    #   - ${AIRFLOW_PROJ_DIR:-.}/postgres-db-volume:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "airflow"]
       interval: 10s
@@ -257,9 +257,6 @@ services:
     restart: unless-stopped
     tty: true
     stdin_open: true
-    # # Включить для PV к данным постгреса
-    # volumes:
-    #   - ./postgres:/var/lib/postgresql/data/
     networks:
       network-main:
         ipv4_address: 172.23.0.21
@@ -274,7 +271,11 @@ services:
       - "9000:9000"
       - "9440:9440"
     healthcheck:
-      test: wget --no-verbose --tries=1 http://127.0.0.1:8123/ping || exit 1
+      test: ["CMD", "sh", "-c", "wget --no-verbose --tries=1 http://127.0.0.1:8123/ping || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 2
+      start_period: 1m
     volumes:
       - ./clickhouse:/etc/clickhouse-server
     networks:
@@ -296,6 +297,12 @@ services:
       - ./grafana:/var/lib/grafana
       - ./grafana-provisioning/dashboards:/etc/grafana/provisioning/dashboards
       - ./grafana-provisioning/datasources:/etc/grafana/provisioning/datasources
+    healthcheck:
+      test: ["CMD", "sh", "-c", "curl -fsSL http://172.23.0.7:3000 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 2
+      start_period: 30s
     networks:
       network-main:
         ipv4_address: 172.23.0.7
@@ -311,9 +318,15 @@ services:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-kaboupi}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-kaboupipass}
     command: server /data --console-address ":9001"
-    # # Включить для PV к данным Object Storage
-    # volumes:
-    #   - ./minio:/data
+    healthcheck:
+      test: ["CMD", "sh", "-c", "curl -fsSL http://172.23.0.13:9001 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 2
+      start_period: 30s
+    networks:
+      network-main:
+        ipv4_address: 172.23.0.13
 
   # ZooKeeper for Kafka (Optional)
   zookeeper:
@@ -336,11 +349,9 @@ services:
     hostname: ${OWNER_NAME:-kaboupi}-kafka
     depends_on:
       - zookeeper
-    networks:
-      network-main:
-        ipv4_address: 172.23.0.20
     ports:
-      - 29092:29092
+      - ${KAFKA_PORT:-9092}:9092
+      - ${KAFKA_OPORT:-29092}:29092
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: 172.23.0.10:${ZK_CLIENT_PORT:-2181}
@@ -348,6 +359,15 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    healthcheck:
+      test: ["CMD", "bash", "-c", "echo 'healthcheck' | kafka-console-producer --bootstrap-server localhost:9092 --topic health-check-topic && kafka-topics --bootstrap-server localhost:9092 --list | grep health-check-topic && exit 0 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 2
+      start_period: 60s
+    networks:
+      network-main:
+        ipv4_address: 172.23.0.20
 
   nifi:
     image: apache/nifi:1.28.1
@@ -364,12 +384,15 @@ services:
       - NIFI_WEB_HTTP_PORT=8080
       - NIFI_WEB_PROXY_HOST=localhost
       - NIFI_ZOOKEEPER_CONNECT_STRING=172.23.0.10:${ZK_CLIENT_PORT:-2181}
+    healthcheck:
+      test: ["CMD", "sh", "-c", "curl -fsSL http://172.23.0.30:8080/nifi || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 2
+      start_period: 60s
     networks:
       network-main:
         ipv4_address: 172.23.0.30
-    # volumes:
-    #   - ./nifi/logs:/opt/nifi/nifi-current/logs
-    #   - ./nifi/conf:/opt/nifi/nifi-current/conf
 
 
 networks:
@@ -385,12 +408,6 @@ networks:
 
 volumes:
   airflow:
-  airflow_postgres:
-    driver: local
-    driver_opts:
-      type: none
-      device: ./airflow/postgres-db-volume
-      o: bind
   nifi:
     driver: local
   clickhouse:
