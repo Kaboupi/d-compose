@@ -45,7 +45,9 @@ jobs:
             "kaboupi-af-worker"
             "kaboupi-clickhouse"
             "kaboupi-postgres"
+            "kaboupi-grafana"
             "kaboupi-nifi"
+            "kaboupi-kafka"
           )
 
           for service in "${services[@]}"; do

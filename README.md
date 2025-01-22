@@ -46,7 +46,7 @@ git clone git@github.com:Kaboupi/d-compose.git
 
 2. Переход в директорию D-compose
 
-```absh
+```bash
 cd d-compose
 ```
 
@@ -57,13 +57,12 @@ docker compose up -d
 ```
 
 4. Провести проверку работоспособности основных сервисов
->>>>>>> Stashed changes
 
 - **Clickhouse**: [http://localhost:8123/](http://localhost:8123/)
 - **Airflow**: [http://localhost:8080/](http://localhost:8080/)
 - **Minio**: [http://localhost:9001/](http://localhost:9001/)
 - **Grafana**: [http://localhost:3000/](http://localhost:3000/)
-- - В **Data Sources** должны присутствовать подключения к СУБД Postgres (kaboupi-postgres) и СУБД Clickhouse (kaboupi-clickhouse). Конфигурации хранятся в `kaboupi_grafana-provisioning/datasources/datasources.yaml`
+- - В **Data Sources** должны присутствовать подключения к СУБД Postgres и СУБД ClickHouse. Конфигурации хранятся в `grafana-provisioning/datasources/datasources.yaml`
 
 Для обеих СУБД присутствует healthcheck, по дефолту PV прописаны только для сохранения подключений к Grafana.
 
@@ -75,17 +74,14 @@ docker compose up -d
 >     image: clickhouse/clickhouse-server:latest
 >     ...
 >     volumes:
->       - ./kaboupi_clickhouse:/etc/clickhouse-server
->       - ./my_custom_dir:/var/lib/clickhouse  # эта строчка добавит в вашу локальную директорию my_custom_dir все данные клика
+>       - ./my_custom_dir:/var/lib/clickhouse  # эта строчка добавит в вашу локальную директорию my_custom_dir все данные СУБД
 >
 > volumes:
->   kaboupi_clickhouse:
->     driver: local
 >   my_custom_dir:
 >     driver: local
 > ```
 
-Параметры для подключения прописаны в [.env](https://github.com/Kaboupi/d-compose/blob/master/.env) файле
+Параметры для подключения прописаны в **[.env](https://github.com/Kaboupi/d-compose/blob/master/.env)** файле
 
 <!--Документация-->
 
@@ -93,14 +89,14 @@ docker compose up -d
 
 Документация по сервисам находится в директории docs
 
-Ознакомиться с её оглавлением можно по ссылке - [Документация d-compose](https://github.com/Kaboupi/d-compose/blob/master/docs/list.md)
+Ознакомиться с её оглавлением можно по ссылке - **[Документация d-compose](https://github.com/Kaboupi/d-compose/blob/master/docs/list.md)**
 
 <!--Support-->
 
 ## Поддержка
 
 Если у вас возникли сложности или вопросы по использованию пакета, создайте
-[обсуждение](https://github.com/kaboupi/d-compose/issues/new/choose) в данном репозитории.
+**[обсуждение](https://github.com/kaboupi/d-compose/issues/new/choose)** в данном репозитории.
 
 <!--Зависимости-->
 
