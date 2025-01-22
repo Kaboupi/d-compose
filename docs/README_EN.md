@@ -14,14 +14,15 @@ The project is configured for a comfortable and quick launch of all services wit
 [**docker-compose.yaml**](https://github.com/Kaboupi/d-compose/blob/master/docker-compose.yaml) includes following images:
 
 |Number|Docker Image|Image TAG|Description|TAG when added|
-|---|---|---|---|---|
-|1|PostgreSQL|13.3|OLTP DB|v1.0.0|
-|2|ClickHouse|latest|OLAP DB|v1.0.0|
-|3|Apache Airflow|2.10.4|ETL|v1.0.0|
-|4|Apache Kafka|latest|Message Broker|v1.0.0|
-|5|Apache Zookeeper|3.7|Coordination/Management|v1.0.0|
-|6|Minio|latest|Object Storage|v1.0.0|
-|7|Grafana Enterprise|latest|BI Tool|v1.0.0|
+|---|---|---|---|
+|1|PostgreSQL|postgres:13.3|OLTP DB|
+|2|ClickHouse|clickhouse/clickhouse-server:latest|OLAP DB|
+|3|Apache Airflow|apache/airflow:2.10.4|ETL|
+|4|Apache Kafka|confluentinc/cp-kafka:latest|Message Broker|
+|5|Apache Zookeeper|zookeeper:3.7|Coordination/Management|
+|6|Apache Nifi|apache/nifi:1.28.1|ETL|
+|7|Minio|minio/minio:latest|Object Storage|
+|8|Grafana Enterprise|grafana/grafana-enterprise:latest|BI Tool|
 
 <!--Установка-->
 
@@ -48,29 +49,13 @@ git clone git@github.com:Kaboupi/d-compose.git
 cd d-compose
 ```
 
-3. Initialize Airflow metadata
-
-```bash
-docker compose up airflow-init
-```
-
-Wait for the completion message `kaboupi-af-init exited with code 0`
-
-4. Start the Docker containers
+3. Start the Docker containers
 
 ```bash
 docker compose up -d
 ```
 
-5. Restart the `kaboupi-clickhouse` service
-
-After the initial startup, you need to restart the `clickhouse` service so that it can pick up the user configurations and main settings from `kaboupi_clickhouse/*.xml`:
-
-```bash
-docker restart kaboupi-clickhouse
-```
-
-6. Verify the functionality of the main services
+4. Verify the functionality of the main services
 
 - **Clickhouse**: [http://localhost:8123/](http://localhost:8123/)
 - **Airflow**: [http://localhost:8080/](http://localhost:8080/)

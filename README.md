@@ -50,29 +50,14 @@ git clone git@github.com:Kaboupi/d-compose.git
 cd d-compose
 ```
 
-3. Инициализация метаданных Airflow
-
-```bash
-docker compose up airflow-init
-```
-
-Необходимо дождаться завершения `kaboupi-af-init exited with code 0`
-
-4. Поднятие Docker контейнеров
+3. Поднятие Docker контейнеров
 
 ```bash
 docker compose up -d
 ```
 
-5. Рестарт сервиса `kaboupi-clickhouse`
-
-После первичного запуска необходимо сделать рестарт сервиса `clickhouse`, чтобы он подцепил конфиги пользователей и основных настроек из `kaboupi_clickhouse/*.xml`:
-
-```bash
-docker restart kaboupi-clickhouse
-```
-
-6. Провести проверку работоспособности основных сервисов
+4. Провести проверку работоспособности основных сервисов
+>>>>>>> Stashed changes
 
 - **Clickhouse**: [http://localhost:8123/](http://localhost:8123/)
 - **Airflow**: [http://localhost:8080/](http://localhost:8080/)

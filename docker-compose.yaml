@@ -42,8 +42,8 @@ services:
       POSTGRES_USER: airflow
       POSTGRES_PASSWORD: airflow
       POSTGRES_DB: airflow
-    volumes:
-      - ${AIRFLOW_PROJ_DIR:-.}/postgres-db-volume:/var/lib/postgresql/data
+    # volumes:
+    #   - ${AIRFLOW_PROJ_DIR:-.}/postgres-db-volume:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "airflow"]
       interval: 10s
@@ -311,9 +311,9 @@ services:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-kaboupi}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-kaboupipass}
     command: server /data --console-address ":9001"
-    # # Включить для PV к данным Object Storage
-    # volumes:
-    #   - ./minio:/data
+    networks:
+      network-main:
+        ipv4_address: 172.23.0.13
 
   # ZooKeeper for Kafka (Optional)
   zookeeper:
@@ -336,9 +336,6 @@ services:
     hostname: ${OWNER_NAME:-kaboupi}-kafka
     depends_on:
       - zookeeper
-    networks:
-      network-main:
-        ipv4_address: 172.23.0.20
     ports:
       - 29092:29092
     environment:
@@ -348,6 +345,15 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    healthcheck:
+      test: ["CMD", "bash", "-c", "echo 'list topics' | kafka-topics --bootstrap-server localhost:29092 --command-config /etc/kafka/secrets/client.properties"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      network-main:
+        ipv4_address: 172.23.0.20
 
   nifi:
     image: apache/nifi:1.28.1
@@ -364,12 +370,15 @@ services:
       - NIFI_WEB_HTTP_PORT=8080
       - NIFI_WEB_PROXY_HOST=localhost
       - NIFI_ZOOKEEPER_CONNECT_STRING=172.23.0.10:${ZK_CLIENT_PORT:-2181}
+    healthcheck:
+      test: ["CMD", "sh", "-c", "curl -fsSL http://172.23.0.30:8080/nifi || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 2
+      start_period: 60s
     networks:
       network-main:
         ipv4_address: 172.23.0.30
-    # volumes:
-    #   - ./nifi/logs:/opt/nifi/nifi-current/logs
-    #   - ./nifi/conf:/opt/nifi/nifi-current/conf
 
 
 networks:
@@ -385,12 +394,6 @@ networks:
 
 volumes:
   airflow:
-  airflow_postgres:
-    driver: local
-    driver_opts:
-      type: none
-      device: ./airflow/postgres-db-volume
-      o: bind
   nifi:
     driver: local
   clickhouse:
