@@ -5,9 +5,9 @@ datasources:
   - name: kaboupi-postgresql
     type: postgres
     url: 172.23.0.21:5432
-    user: kaboupi
+    user: grafana_user
     secureJsonData:
-      password: 'kaboupi'
+      password: 'grafana_password'
     jsonData:
       database: postgres
       sslmode: 'disable'
@@ -23,8 +23,8 @@ datasources:
     jsonData:
       host: 172.23.0.11
       port: 9000
-      username: kaboupi
+      username: grafana_user
       tlsSkipVerify: false
     secureJsonData:
-      password: kaboupi
+      password: grafana_password
 
