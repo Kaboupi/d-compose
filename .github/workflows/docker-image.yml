@@ -39,11 +39,21 @@ jobs:
 
       - name: Start healthchecks
         run: |
-          for service in kaboupi-af-webserver kaboupi-af-scheduler kaboupi-af-worker kaboupi-clickhouse kaboupi-postgres; do
+          declare -a services=(
+            "kaboupi-af-webserver"
+            "kaboupi-af-scheduler"
+            "kaboupi-af-worker"
+            "kaboupi-clickhouse"
+            "kaboupi-postgres"
+            "kaboupi-nifi"
+          )
+
+          for service in "${services[@]}"; do
             echo "Waiting for $service to be healthy..."
             until [ "$(docker inspect -f '{{.State.Health.Status}}' ${service})" == "healthy" ]; do
               sleep 5
             done
+            echo "Service $service is healthy!"
           done
 
       - name: Clean up
