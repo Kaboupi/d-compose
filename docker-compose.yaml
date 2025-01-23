@@ -283,7 +283,6 @@ services:
       start_period: 1m
     volumes:
       - ./clickhouse:/etc/clickhouse-server
-      # - ./init-scripts/clickhouse-init.sql:/docker-entrypoint-initdb.d/clickhouse-init.sql
     networks:
       network-main:
         ipv4_address: 172.23.0.11
@@ -300,7 +299,7 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD:-kaboupi}
     restart: unless-stopped
     volumes:
-      - ./grafana:/var/lib/grafana
+      # - ./grafana:/var/lib/grafana  # Локально работает, PV отключен для CI/CD healthchecks
       - ./grafana-provisioning/dashboards:/etc/grafana/provisioning/dashboards
       - ./grafana-provisioning/datasources:/etc/grafana/provisioning/datasources
     healthcheck:
