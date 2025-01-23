@@ -283,7 +283,6 @@ services:
       start_period: 1m
     volumes:
       - ./clickhouse:/etc/clickhouse-server
-      - ./init-scripts/clickhouse-init.sql:/docker-entrypoint-initdb.d/clickhouse-init.sql
     networks:
       network-main:
         ipv4_address: 172.23.0.11

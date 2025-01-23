@@ -26,6 +26,23 @@
             </networks>
             <quota>default</quota>
         </kaboupi>
+        <grafana_user>
+            <password>grafana_password</password>
+            <profile>default</profile>
+            <networks>
+                <ip>::/0</ip>
+            </networks>
+            <quota>default</quota>
+            <access>
+                <name>*</name>
+                <table>
+                    <name>*</name>
+                    <permissions>
+                        <select>1</select>
+                    </permissions>
+                </table>
+            </access>
+        </grafana_user>
     </users>
 
     <quotas>
