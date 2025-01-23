@@ -299,7 +299,7 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD:-kaboupi}
     restart: unless-stopped
     volumes:
-      - ./grafana:/var/lib/grafana
+      # - ./grafana:/var/lib/grafana  # Локально работает, PV отключен для CI/CD healthchecks
       - ./grafana-provisioning/dashboards:/etc/grafana/provisioning/dashboards
       - ./grafana-provisioning/datasources:/etc/grafana/provisioning/datasources
     healthcheck:
