@@ -47,18 +47,54 @@ jobs:
             "kaboupi-postgres"
             "kaboupi-nifi"
             "kaboupi-kafka"
+            "kaboupi-zookeeper"
+            "kaboupi-grafana"
           )
-          
-          # "kaboupi-grafana"
-          # doesn't work for now, to do
-          
-          for service in "${services[@]}"; do
-            echo "Waiting for $service to be healthy..."
-            until [ "$(docker inspect -f '{{.State.Health.Status}}' ${service})" == "healthy" ]; do
+
+          # SET BASE TIMEOUT FOR HEALTHCHECK
+
+          timeout=180
+          cur_time=$(date +"%H:%M:%S")
+
+          check_service() {
+            local service=$1
+            local start_time=$(date +%s)
+
+            while true; do
+              if ! docker ps -a --format '{{.Names}}' | grep -q "^${service}$"; then
+                echo -e "\nService $service does not exist! Exiting..."
+                exit 1
+              fi
+
+              health_state=$(docker inspect -f '{{.State.Health.Status}}' "${service}")
+              current_time=$(date +%s)
+              elapsed_time=$((current_time - start_time))
+              echo "[$cur_time] - Waiting for $service to be healthy...($health_state, $elapsed_time / $timeout)"
+                
+              if [ "$health_state" == "healthy" ]; then
+                echo "[$cur_time] - Service $service is healthy!"
+                return 0
+              fi
+
+              if [ "$health_state" == "unhealthy" ]; then
+                echo "[$cur_time] - Service $service is unhealthy! Exiting..."
+                exit 1
+              fi
+
+              if [ $elapsed_time -ge $timeout ]; then
+                echo "[$cur_time] - Timeout reached for $service. Exiting..."
+                exit 1
+              fi
+
               sleep 5
             done
-            echo "Service $service is healthy!"
+          }
+
+          for service in "${services[@]}"; do
+            check_service "$service" &
           done
+
+          wait
 
       - name: Clean up
         run: |
