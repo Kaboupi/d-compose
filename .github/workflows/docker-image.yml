@@ -43,6 +43,7 @@ jobs:
             "kaboupi-af-webserver"
             "kaboupi-af-scheduler"
             "kaboupi-af-worker"
+            "kaboupi-af-postgres"
             "kaboupi-clickhouse"
             "kaboupi-postgres"
             "kaboupi-nifi"
