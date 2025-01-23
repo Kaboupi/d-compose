@@ -43,6 +43,7 @@ jobs:
             "kaboupi-af-webserver"
             "kaboupi-af-scheduler"
             "kaboupi-af-worker"
+            "kaboupi-af-postgres"
             "kaboupi-clickhouse"
             "kaboupi-postgres"
             "kaboupi-nifi"
@@ -77,7 +78,7 @@ jobs:
               fi
 
               if [ "$health_state" == "unhealthy" ]; then
-                echo "[$cur_time] - Service $service is unhealthy! Exiting..."
+                echo -e "[$cur_time] - ERROR!\nService $service is unhealthy! Exiting...\n$(docker logs $service -n 30)"
                 exit 1
               fi
 
