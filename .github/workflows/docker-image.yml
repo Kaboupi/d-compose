@@ -43,7 +43,6 @@ jobs:
             "kaboupi-af-webserver"
             "kaboupi-af-scheduler"
             "kaboupi-af-worker"
-            "kaboupi-af-postgres"
             "kaboupi-clickhouse"
             "kaboupi-postgres"
             "kaboupi-nifi"
@@ -51,27 +50,31 @@ jobs:
             "kaboupi-zookeeper"
             "kaboupi-grafana"
           )
-
-          # SET BASE TIMEOUT FOR HEALTHCHECK
-
+          
+          # Basic timeout for all services
           timeout=180
-          cur_time=$(date +"%H:%M:%S")
 
+          # Function to check service health
           check_service() {
             local service=$1
             local start_time=$(date +%s)
 
+            # echo "[$cur_time] - Waiting for $service to be healthy..."
+
             while true; do
+              cur_time=$(date +"%H:%M:%S")
+
               if ! docker ps -a --format '{{.Names}}' | grep -q "^${service}$"; then
                 echo -e "\nService $service does not exist! Exiting..."
-                exit 1
+                return 1
               fi
 
               health_state=$(docker inspect -f '{{.State.Health.Status}}' "${service}")
               current_time=$(date +%s)
               elapsed_time=$((current_time - start_time))
+
               echo "[$cur_time] - Waiting for $service to be healthy...($health_state, $elapsed_time / $timeout)"
-                
+
               if [ "$health_state" == "healthy" ]; then
                 echo "[$cur_time] - Service $service is healthy!"
                 return 0
@@ -79,23 +82,41 @@ jobs:
 
               if [ "$health_state" == "unhealthy" ]; then
                 echo -e "[$cur_time] - ERROR!\nService $service is unhealthy! Exiting...\n$(docker logs $service -n 30)"
-                exit 1
+                return 1
               fi
 
               if [ $elapsed_time -ge $timeout ]; then
                 echo "[$cur_time] - Timeout reached for $service. Exiting..."
-                exit 1
+                return 1
               fi
 
               sleep 5
             done
           }
 
+          status=0        # Status code: 0 - success, 1 - fail
+          failed_count=0  # Count of failed tests
+          pids=()         # Array for pids to track
+
+          # Start to monitor all services
           for service in "${services[@]}"; do
             check_service "$service" &
+            pids+=($!)
           done
 
-          wait
+          # Check service return status
+          for pid in "${pids[@]}"; do
+            wait $pid
+            if [ $? -ne 0 ]; then
+              status=1
+              failed_count=$((failed_count + 1))
+            fi
+          done
+
+          echo -e "\n[$(date +"%H:%M:%S")] - Exiting the healthcheck stage\nFailed healthchecks: $failed_count"
+
+          exit $status
+
 
       - name: Clean up
         run: |
