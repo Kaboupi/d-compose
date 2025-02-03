@@ -405,6 +405,32 @@ services:
       network-main:
         ipv4_address: 172.23.0.30
 
+  trino:
+    image: trinodb/trino:latest
+    container_name: ${OWNER_NAME:-kaboupi}-trino
+    hostname: ${OWNER_NAME:-kaboupi}-trino
+    ports:
+      - "8085:8080"
+    volumes:
+      - ./trino/config.properties:/etc/trino/config.properties
+      - ./trino/jvm.config:/etc/trino/jvm.config
+      - ./trino/catalog:/etc/trino/catalog
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-kaboupi}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-kaboupi}
+    depends_on:
+      - postgres
+      - clickhouse
+    networks:
+      network-main:
+        ipv4_address: 172.23.0.14
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/v1/info"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
 
 networks:
   network-main:
