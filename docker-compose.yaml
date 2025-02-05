@@ -269,7 +269,7 @@ services:
         
   # ClickHouse DB (clickhouse-server)
   clickhouse:
-    image: clickhouse/clickhouse-server:latest
+    image: clickhouse/clickhouse-server:24.9.3
     container_name: ${OWNER_NAME:-kaboupi}-clickhouse
     ports:
       - "${CLICKHOUSE_PORT:-8123}:8123"
