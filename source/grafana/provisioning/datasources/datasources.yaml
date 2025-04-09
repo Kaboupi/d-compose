@@ -2,14 +2,14 @@ apiVersion: 1
 
 datasources:
   
-  - name: kaboupi-postgresql
+  - name: db-postgres
     type: postgres
-    url: 172.23.0.21:5432
+    url: db-postgres:5432
     user: grafana_user
     secureJsonData:
       password: 'grafana_password'
     jsonData:
-      database: postgres
+      database: postgres_db
       sslmode: 'disable'
       maxOpenConns: 100
       maxIdleConns: 100
@@ -18,10 +18,10 @@ datasources:
       postgresVersion: 1303
       timescaledb: false
   
-  - name: kaboupi-clickhouse
+  - name: db-clickhouse
     type: grafana-clickhouse-datasource
     jsonData:
-      host: 172.23.0.11
+      host: db-clickhouse
       port: 9000
       username: grafana_user
       tlsSkipVerify: false

@@ -1,0 +1,26 @@
+postgres_db_conn:
+  conn_type: postgres
+  description: Connection to postgres database
+  host: db-postgres
+  port: 5432
+  schema: postgres_db
+  login: postgres_user
+  password: postgres_password
+  extra: null
+
+clickhouse_db_conn:
+  conn_type: sqlite
+  description: Connection to clickhouse database
+  host: db-clickhouse
+  port: 8123
+  schema: null
+  login: clickhouse_user
+  password: clickhouse_password
+  extra: null
+
+minio_s3_conn:
+  conn_type: aws
+  login: admin
+  password: minioadmin
+  host: minio
+  port: 9000

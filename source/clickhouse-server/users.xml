@@ -18,14 +18,14 @@
             </networks>
             <quota>default</quota>
         </default>
-        <kaboupi>
-            <password>kaboupi</password>
+        <clickhouse_user>
+            <password>clickhouse_password</password>
             <profile>default</profile>
             <networks>
                 <ip>::/0</ip>
             </networks>
             <quota>default</quota>
-        </kaboupi>
+        </clickhouse_user>
         <grafana_user>
             <password>grafana_password</password>
             <profile>default</profile>
