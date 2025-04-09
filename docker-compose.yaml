@@ -14,13 +14,14 @@ x-airflow-common:
     AIRFLOW__CORE__LOAD_EXAMPLES: '${AIRFLOW__CORE__LOAD_EXAMPLES:-false}'
     AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session'
     AIRFLOW__SCHEDULER__ENABLE_HEALTH_CHECK: 'true'
+    AIRFLOW__CORE__TEST_CONNECTION: 'Enabled'
     _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
-    AIRFLOW_CONFIG: '/opt/airflow/config/airflow.cfg'
   volumes:
     - ${AIRFLOW_PROJ_DIR:-./airflow}/dags:/opt/airflow/dags
     - ${AIRFLOW_PROJ_DIR:-./airflow}/logs:/opt/airflow/logs
     - ${AIRFLOW_PROJ_DIR:-./airflow}/config:/opt/airflow/config
     - ${AIRFLOW_PROJ_DIR:-./airflow}/plugins:/opt/airflow/plugins
+    - ${AIRFLOW_PROJ_DIR:-./airflow}/admin:/opt/airflow/admin
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
     &airflow-common-depends-on
@@ -29,14 +30,14 @@ x-airflow-common:
     postgres-af:
       condition: service_healthy
   networks:
-    - network-airflow
+    af_network:
 
 services:
   
   # Postgres metadata database for airflow
   postgres-af:
     image: postgres:13
-    container_name: ${OWNER_NAME:-kaboupi}-af-postgres
+    container_name: ${COMPOSE_PROJECT_NAME:-d-compose}_af-postgres
     hostname: postgres
     ports:
       - '5435:5432'
@@ -45,7 +46,7 @@ services:
       POSTGRES_PASSWORD: airflow
       POSTGRES_DB: airflow
     volumes:
-      - ${AIRFLOW_PROJ_DIR:-./airflow}/postgres-db-volume:/var/lib/postgresql/data
+      - postgres-af-data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "airflow"]
       interval: 10s
@@ -53,13 +54,13 @@ services:
       start_period: 5s
     restart: always
     networks:
-      - network-airflow
+      af_network:
 
   
   # Redis for airflow
   redis:
     image: redis:7.2-bookworm
-    container_name: ${OWNER_NAME:-kaboupi}-af-redis
+    container_name: ${COMPOSE_PROJECT_NAME:-d-compose}_af-redis
     hostname: redis
     expose:
       - 6379
@@ -71,12 +72,12 @@ services:
       start_period: 30s
     restart: always
     networks:
-      - network-airflow
+      af_network:
   
   # Airflow webserver
   airflow-webserver:
     <<: *airflow-common
-    container_name: ${OWNER_NAME:-kaboupi}-af-webserver
+    container_name: ${COMPOSE_PROJECT_NAME:-d-compose}_af-webserver
     hostname: airflow-webserver
     command: webserver
     ports:
@@ -93,12 +94,12 @@ services:
       airflow-init:
         condition: service_completed_successfully
     networks:
-      - network-airflow
+      af_network:
 
   # Airflow scheduler
   airflow-scheduler:
     <<: *airflow-common
-    container_name: ${OWNER_NAME:-kaboupi}-af-scheduler
+    container_name: ${COMPOSE_PROJECT_NAME:-d-compose}_af-scheduler
     hostname: airflow-scheduler
     command: scheduler
     healthcheck:
@@ -113,13 +114,13 @@ services:
       airflow-init:
         condition: service_completed_successfully
     networks:
-      - network-airflow
+      af_network:
 
   # Airflow worker
   airflow-worker:
     # build: .
     <<: *airflow-common
-    container_name: ${OWNER_NAME:-kaboupi}-af-worker
+    container_name: ${COMPOSE_PROJECT_NAME:-d-compose}_af-worker
     hostname: airflow-worker
     command: celery worker
     healthcheck:
@@ -139,12 +140,12 @@ services:
       airflow-init:
         condition: service_completed_successfully
     networks:
-      - network-airflow
+      af_network:
 
   # Airflow triggerer
   airflow-triggerer:
     <<: *airflow-common
-    container_name: ${OWNER_NAME:-kaboupi}-af-triggerer
+    container_name: ${COMPOSE_PROJECT_NAME:-d-compose}_af-triggerer
     hostname: airflow-triggerer
     command: triggerer
     healthcheck:
@@ -159,61 +160,22 @@ services:
       airflow-init:
         condition: service_completed_successfully
     networks:
-      - network-airflow
+      af_network:
 
   # Airflow init
   airflow-init:
     <<: *airflow-common
-    container_name: ${OWNER_NAME:-kaboupi}-af-init
+    container_name: ${COMPOSE_PROJECT_NAME:-d-compose}_af-init
     hostname: airflow-init
     entrypoint: /bin/bash
     command:
       - -c
       - |
-        if [[ -z "${AIRFLOW_UID}" ]]; then
-          echo
-          echo -e "\033[1;33mWARNING!!!: AIRFLOW_UID not set!\e[0m"
-          echo "If you are on Linux, you SHOULD follow the instructions below to set "
-          echo "AIRFLOW_UID environment variable, otherwise files will be owned by root."
-          echo "For other operating systems you can get rid of the warning with manually created .env file:"
-          echo "    See: https://airflow.apache.org/docs/apache-airflow/stable/howto/docker-compose/index.html#setting-the-right-airflow-user"
-          echo
-        fi
-        one_meg=1048576
-        mem_available=$$(($$(getconf _PHYS_PAGES) * $$(getconf PAGE_SIZE) / one_meg))
-        cpus_available=$$(grep -cE 'cpu[0-9]+' /proc/stat)
-        disk_available=$$(df / | tail -1 | awk '{print $$4}')
-        warning_resources="false"
-        if (( mem_available < 4000 )) ; then
-          echo
-          echo -e "\033[1;33mWARNING!!!: Not enough memory available for Docker.\e[0m"
-          echo "At least 4GB of memory required. You have $$(numfmt --to iec $$((mem_available * one_meg)))"
-          echo
-          warning_resources="true"
-        fi
-        if (( cpus_available < 2 )); then
-          echo
-          echo -e "\033[1;33mWARNING!!!: Not enough CPUS available for Docker.\e[0m"
-          echo "At least 2 CPUs recommended. You have $${cpus_available}"
-          echo
-          warning_resources="true"
-        fi
-        if (( disk_available < one_meg * 10 )); then
-          echo
-          echo -e "\033[1;33mWARNING!!!: Not enough Disk space available for Docker.\e[0m"
-          echo "At least 10 GBs recommended. You have $$(numfmt --to iec $$((disk_available * 1024 )))"
-          echo
-          warning_resources="true"
-        fi
-        if [[ $${warning_resources} == "true" ]]; then
-          echo
-          echo -e "\033[1;33mWARNING!!!: You have not enough resources to run Airflow (see above)!\e[0m"
-          echo "Please follow the instructions to increase amount of resources available:"
-          echo "   https://airflow.apache.org/docs/apache-airflow/stable/howto/docker-compose/index.html#before-you-begin"
-          echo
-        fi
         mkdir -p /sources/logs /sources/dags /sources/plugins
-        chown -R "${AIRFLOW_UID}:0" /sources/{logs,dags,plugins}
+        chown -R "${AIRFLOW_UID}:0" /sources/{logs,dags,plugins,admin}
+        airflow db migrate
+        airflow connections import /sources/admin/connections/connections.yaml
+
         exec /entrypoint airflow version
     environment:
       <<: *airflow-common-env
@@ -226,7 +188,7 @@ services:
     volumes:
       - ${AIRFLOW_PROJ_DIR:-./airflow}:/sources
     networks:
-      - network-airflow
+      af_network:
 
   airflow-cli:
     <<: *airflow-common
@@ -240,20 +202,21 @@ services:
       - -c
       - airflow
     networks:
-      - network-airflow
+      af_network:
 
   # PostgreSQL DB
-  postgres:
+  db-postgres:
     image: postgres:13.3
-    container_name: ${OWNER_NAME:-kaboupi}-postgres
-    hostname: ${OWNER_NAME:-kaboupi}-postgres
+    container_name: ${COMPOSE_PROJECT_NAME:-d-compose}_db-postgres
+    hostname: db-postgres
     environment:
-      - POSTGRES_USER=${POSTGRES_USER:-kaboupi}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-kaboupi}
+      - POSTGRES_DB=${POSTGRES_DB:-postgres_db}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres_user}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres_password}
     ports:
       - '${POSTGRES_PORT:-5432}:5432'
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres_user -d postgres_db"]
+      test: ["CMD-SHELL", "pg_isready -U postgres_user -d postgres_password"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -261,83 +224,101 @@ services:
     tty: true
     stdin_open: true
     volumes:
-      - ./init-scripts/postgres-init.sql:/docker-entrypoint-initdb.d/postgres-init.sql
+      - postgres-data:/var/lib/postgresql/data
+      - ./source/init-scripts/postgres-init.sql:/docker-entrypoint-initdb.d/postgres-init.sql
     networks:
-      network-main:
-        ipv4_address: 172.23.0.21
+      af_network:
       
         
   # ClickHouse DB (clickhouse-server)
-  clickhouse:
+  db-clickhouse:
     image: clickhouse/clickhouse-server:24.9.3
-    container_name: ${OWNER_NAME:-kaboupi}-clickhouse
+    container_name: ${COMPOSE_PROJECT_NAME:-d-compose}_db-clickhouse
+    hostname: db-clickhouse
     ports:
       - "${CLICKHOUSE_PORT:-8123}:8123"
-      - "9000:9000"
-      - "9440:9440"
     healthcheck:
-      test: ["CMD", "sh", "-c", "wget --no-verbose --tries=1 http://127.0.0.1:8123/ping || exit 1"]
+      test: ["CMD", "sh", "-c", "wget --no-verbose --tries=1 http://localhost:8123/ping || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 2
       start_period: 1m
     volumes:
-      - ./clickhouse:/etc/clickhouse-server
+      - clickhouse-data:/var/lib/clickhouse
+      - ./source/clickhouse-server:/etc/clickhouse-server
     networks:
-      network-main:
-        ipv4_address: 172.23.0.11
+      af_network:
 
   # Grafana BI
-  grafana:
-    image: grafana/grafana-enterprise
-    container_name: ${OWNER_NAME:-kaboupi}-grafana
+  bi-grafana:
+    image: grafana/grafana-enterprise:latest
+    container_name: ${COMPOSE_PROJECT_NAME:-d-compose}_bi-grafana
     ports:
       - '${GRAFANA_PORT:-3000}:3000'
     environment:
       - GF_INSTALL_PLUGINS=grafana-clickhouse-datasource
-      - GF_SECURITY_ADMIN_USER=${GF_SECURITY_ADMIN_USER:-kaboupi}
-      - GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD:-kaboupi}
+      - GF_SECURITY_ADMIN_USER=${GF_SECURITY_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD:-grafanaadmin}
     restart: unless-stopped
     volumes:
-      # - ./grafana:/var/lib/grafana  # Локально работает, PV отключен для CI/CD healthchecks
-      - ./grafana-provisioning/dashboards:/etc/grafana/provisioning/dashboards
-      - ./grafana-provisioning/datasources:/etc/grafana/provisioning/datasources
+      - grafana-data:/var/lib/grafana
+      - ./source/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ./source/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ./source/grafana/dashboards:/etc/dashboards
     healthcheck:
-      test: ["CMD", "sh", "-c", "curl -fsSL http://172.23.0.7:3000 || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 2
-      start_period: 30s
+      test: ["CMD", "sh", "-c", "curl -fsSL http://localhost:3000 || exit 1"]
+      interval: 60s
+      timeout: 30s
+      retries: 3
     networks:
-      network-main:
-        ipv4_address: 172.23.0.7
+      af_network:
 
-  # Minio image as S3
-  minio:
+  # OBJECT STORAGE MINIO SERVICE
+  os-minio:
     image: minio/minio:latest
-    container_name: ${OWNER_NAME:-kaboupi}-minio
+    container_name: ${COMPOSE_PROJECT_NAME:-d-compose}_minio
+    hostname: minio
+    volumes:
+      - minio-data:/data
     ports:
       - "${MINIO_PORT:-9001}:9001"
       - "9003:9000"
     environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-kaboupi}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-kaboupipass}
-    command: server /data --console-address ":9001"
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-admin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      MINIO_DOMAIN: minio
+    command: server /data --address ":9000" --console-address ":9001"
     healthcheck:
-      test: ["CMD", "sh", "-c", "curl -fsSL http://172.23.0.13:9001 || exit 1"]
+      test: ["CMD", "sh", "-c", "curl -fsSL http://localhost:9000/minio/health/live || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 2
-      start_period: 30s
+      start_period: 15s
     networks:
-      network-main:
-        ipv4_address: 172.23.0.13
+      af_network:
+
+  # OBJECT STORAGE MINIO INIT
+  os-minio-init:
+    image: minio/mc
+    container_name: ${COMPOSE_PROJECT_NAME:-d-compose}_minio-init
+    depends_on:
+      os-minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/mc alias set miniolink http://minio:9000 admin minioadmin;
+      /usr/bin/mc mb miniolink/postgres-data;
+      /usr/bin/mc policy set public miniolink/postgres-data;
+      exit 0;
+      "
+    networks:
+      af_network:
 
   # ZooKeeper for Kafka (Optional)
   zookeeper:
     image: zookeeper:3.7
-    container_name: ${OWNER_NAME:-kaboupi}-zookeeper
-    hostname: ${OWNER_NAME:-kaboupi}-zookeeper
+    container_name: ${COMPOSE_PROJECT_NAME:-d-compose}_zookeeper
+    hostname: zookeeper
     ports:
       - ${ZK_OUT_PORT:-22181}:${ZK_CLIENT_PORT:-2181}
     environment:
@@ -350,14 +331,13 @@ services:
       retries: 5
       start_period: 60s
     networks:
-      network-main:
-        ipv4_address: 172.23.0.10
+      af_network:
 
   # Apache Kafka (Optional)
   kafka:
     image: confluentinc/cp-kafka:latest
-    container_name: ${OWNER_NAME:-kaboupi}-kafka
-    hostname: ${OWNER_NAME:-kaboupi}-kafka
+    container_name: ${COMPOSE_PROJECT_NAME:-d-compose}_kafka
+    hostname: ${COMPOSE_PROJECT_NAME:-d-compose}_kafka
     depends_on:
       - zookeeper
     ports:
@@ -365,7 +345,7 @@ services:
       - ${KAFKA_OPORT:-29092}:29092
     environment:
       KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: 172.23.0.10:${ZK_CLIENT_PORT:-2181}
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:${ZK_CLIENT_PORT:-2181}
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
@@ -377,13 +357,12 @@ services:
       retries: 2
       start_period: 60s
     networks:
-      network-main:
-        ipv4_address: 172.23.0.20
+      af_network:
 
   nifi:
     image: apache/nifi:1.28.1
-    container_name: ${OWNER_NAME:-kaboupi}-nifi
-    hostname: ${OWNER_NAME:-kaboupi}-nifi
+    container_name: ${COMPOSE_PROJECT_NAME:-d-compose}_nifi
+    hostname: ${COMPOSE_PROJECT_NAME:-d-compose}_nifi
     depends_on:
       - zookeeper
     ports:
@@ -394,40 +373,17 @@ services:
     environment:
       - NIFI_WEB_HTTP_PORT=8080
       - NIFI_WEB_PROXY_HOST=localhost
-      - NIFI_ZOOKEEPER_CONNECT_STRING=172.23.0.10:${ZK_CLIENT_PORT:-2181}
-    healthcheck:
-      test: ["CMD", "sh", "-c", "curl -fsSL http://172.23.0.30:8080/nifi || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 2
-      start_period: 60s
+      - NIFI_ZOOKEEPER_CONNECT_STRING=zookeeper:${ZK_CLIENT_PORT:-2181}
     networks:
-      network-main:
-        ipv4_address: 172.23.0.30
+      af_network:
 
 
 networks:
-  network-main:
-    name: network-main
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 172.23.0.0/24
-  network-airflow:
-    name: network-airflow
-
+  af_network:
 
 volumes:
-  airflow:
-  airflow_postgres:
-    driver: local
-    driver_opts:
-      type: none
-      device: ${AIRFLOW_PROJ_DIR:-./airflow}/postgres-db-volume
-      o: bind
-  nifi:
-    driver: local
-  clickhouse:
-    driver: local
-  grafana:
-    driver: local
+  postgres-af-data:
+  postgres-data:
+  clickhouse-data:
+  grafana-data:
+  minio-data:

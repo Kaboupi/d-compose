@@ -3,12 +3,12 @@
 Дефолтные параметры подключения
 
 - DBeaver / Other IDE
-- - **Host**: localhost 
+- - **Host**: localhost
 - - **Port**: 5432
-- - **Login**: kaboupi
-- - **Password**: kaboupi
+- - **Login**: postgres_user
+- - **Password**: postgres_password
 - Services (Grafana, Airflow, etc.)
-- - **Host**: 192.168.0.160
+- - **Host: db-postgres**
 - - **Port**: 5432
-- - **Login**: kaboupi
-- - **Password**: kaboupi
+- - **Login**: postgres_user (grafana_user:ro for datamart schema, see postgres-init.sql)
+- - **Password**: postgres_password (grafana_password:ro for datamart schema, see postgres-init.sql)

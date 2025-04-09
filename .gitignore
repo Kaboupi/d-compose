@@ -5,8 +5,4 @@
 */logs/
 */plugins/
 */postgres-db-volume/
-grafana/
-minio/
-nifi
-postgres/
 venv

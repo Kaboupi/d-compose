@@ -1,0 +1,13 @@
+apiVersion: 1
+
+providers:
+  - name: 'Пример дашборда'
+    orgId: 1
+    folder: Dashboards
+    folderUid: dashboards
+    type: file
+    disableDeletion: true
+    updateIntervalSeconds: 60
+    options:
+      path: /etc/dashboards
+      foldersFromFilesStructure: false
