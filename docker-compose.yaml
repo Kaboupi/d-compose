@@ -238,7 +238,7 @@ services:
     ports:
       - "${CLICKHOUSE_PORT:-8123}:8123"
     healthcheck:
-      test: ["CMD", "sh", "-c", "wget --no-verbose --tries=1 http://127.0.0.1:8123/ping || exit 1"]
+      test: ["CMD", "sh", "-c", "wget --no-verbose --tries=1 http://localhost:8123/ping || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 2
@@ -318,7 +318,7 @@ services:
   zookeeper:
     image: zookeeper:3.7
     container_name: ${COMPOSE_PROJECT_NAME:-d-compose}_zookeeper
-    hostname: ${COMPOSE_PROJECT_NAME:-d-compose}_zookeeper
+    hostname: zookeeper
     ports:
       - ${ZK_OUT_PORT:-22181}:${ZK_CLIENT_PORT:-2181}
     environment:
@@ -345,7 +345,7 @@ services:
       - ${KAFKA_OPORT:-29092}:29092
     environment:
       KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: 172.23.0.10:${ZK_CLIENT_PORT:-2181}
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:${ZK_CLIENT_PORT:-2181}
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
@@ -373,13 +373,7 @@ services:
     environment:
       - NIFI_WEB_HTTP_PORT=8080
       - NIFI_WEB_PROXY_HOST=localhost
-      - NIFI_ZOOKEEPER_CONNECT_STRING=172.23.0.10:${ZK_CLIENT_PORT:-2181}
-    healthcheck:
-      test: ["CMD", "sh", "-c", "curl -fsSL http://172.23.0.30:8080/nifi || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 2
-      start_period: 60s
+      - NIFI_ZOOKEEPER_CONNECT_STRING=zookeeper:${ZK_CLIENT_PORT:-2181}
     networks:
       af_network:
 
