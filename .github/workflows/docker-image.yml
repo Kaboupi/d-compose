@@ -40,15 +40,16 @@ jobs:
       - name: Start healthchecks
         run: |
           declare -a services=(
-            "kaboupi-af-webserver"
-            "kaboupi-af-scheduler"
-            "kaboupi-af-worker"
-            "kaboupi-clickhouse"
-            "kaboupi-postgres"
-            "kaboupi-nifi"
-            "kaboupi-kafka"
-            "kaboupi-zookeeper"
-            "kaboupi-grafana"
+            "d-compose_af-webserver"
+            "d-compose_af-scheduler"
+            "d-compose_af-worker"
+            "d-compose_db-clickhouse"
+            "d-compose_db-postgres"
+            "d-compose_bi-grafana"
+            "d-compose_minio"
+            "d-compose_nifi"
+            "d-compose_kafka"
+            "d-compose_zookeeper"
           )
           
           # Basic timeout for all services
