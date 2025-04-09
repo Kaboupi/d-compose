@@ -8,7 +8,7 @@
 
 > Follow this link to view the description in English - [README_EN.md](https://github.com/Kaboupi/d-compose/tree/master/docs/README_EN.md)
 
-Стэк из сервисов для практики в области Data Engineering / DevOps / DBA.
+Стэк из сервисов для практики в области Data Engineering.
 
 Проект настроен на комфортный и быстрый запуск всех сервисов одной командой.
 
@@ -22,7 +22,7 @@
 |4|Apache Kafka|confluentinc/cp-kafka:latest|Брокер сообщений|
 |5|Apache Zookeeper|zookeeper:3.7|Координация/Управление|
 |6|Apache Nifi|apache/nifi:1.28.1|ETL|
-|7|Minio|minio/minio:latest|Object Storage|
+|7|Minio|minio/minio:latest|Объектное хранилище|
 |8|Grafana Enterprise|grafana/grafana-enterprise:latest|BI-инструмент|
 
 > Основные параметры для подключения и настраиваемые конфигурации прописаны в **[.env](https://github.com/Kaboupi/d-compose/blob/master/.env)** файле
@@ -38,7 +38,7 @@
 **Windows**:
 Для установки **Docker compose** необходимо установить [Desktop версию для Windows](https://docs.docker.com/desktop/) и иметь установленную WSL 2.0.
 
-Ознакомиться с гайдом по установке и настройке WSL можно на [официальном сайте Microsoft](https://learn.microsoft.com/ru-ru/windows/wsl/install).
+Ознакомиться с инстуркцией по установке и настройке WSL можно на [официальном сайте Microsoft](https://learn.microsoft.com/ru-ru/windows/wsl/install).
 
 1. Клонирование репозитория
 
@@ -58,14 +58,6 @@ cd d-compose
 docker compose up -d
 ```
 
-4. Провести проверку работоспособности основных сервисов
-
-```bash
-docker ps --format '{{.Status}}\t{{.Names}}'
-```
-
-У всех контейнеров должен быть статус **Up ... (healthy)**
-
 <!--Взаимодействие с сервисами-->
 
 ## Взаимодействие с сервисами
@@ -77,11 +69,11 @@ docker ps --format '{{.Status}}\t{{.Names}}'
 - **Apache NiFi**: [http://localhost:8090/nifi](http://localhost:8090/nifi)
 - **Minio**: [http://localhost:9001/](http://localhost:9001/)
 - **Grafana**: [http://localhost:3000/](http://localhost:3000/)
-- - В **Data Sources** должны присутствовать подключения к СУБД Postgres и СУБД ClickHouse. Конфигурации хранятся в `grafana-provisioning/datasources/datasources.yaml`
+- - В **Data Sources** должны присутствовать подключения к СУБД Postgres и СУБД ClickHouse. Конфигурации хранятся в `sources/grafana/provisioning/datasources/datasources.yaml`
 
 По дефолту PV прописаны только для сохранения подключений к Grafana и метаданных Postgres для Airflow.
 
-> ❗Если хотите добавить PV, то нужно прописать их напрямую в `volumes:`, например:
+> ❗Если хотите добавить том или bind mount, то нужно прописать их напрямую в `volumes:`, например:
 >
 > ```yaml
 > services:
@@ -89,11 +81,11 @@ docker ps --format '{{.Status}}\t{{.Names}}'
 >     image: clickhouse/clickhouse-server:latest
 >     ...
 >     volumes:
->       - ./my_custom_dir:/var/lib/clickhouse  # эта строчка добавит в вашу локальную директорию my_custom_dir все данные СУБД
+>       - my_custom_volume:/var/lib/clickhouse  # docker volume
+>       - ./my_custom_dir:/var/lib/clickhouse   # bind mount
 >
 > volumes:
->   my_custom_dir:
->     driver: local
+>   my_custom_volume:
 > ```
 
 <!--Документация-->
@@ -118,7 +110,9 @@ docker ps --format '{{.Status}}\t{{.Names}}'
 Linux:
 
 - Docker compose release ~>2.28.0 or latest
-  Windows:
+  
+Windows:
+
 - Windows 10 ~>22H2
 - WSL (желательно 2.0)
 - Docker Desktop ~>4.20 or latest

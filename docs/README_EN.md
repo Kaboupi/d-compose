@@ -7,7 +7,7 @@
 
 # D-compose 🐳
 
-A stack of services for practicing Data Engineering / DevOps / DBA.
+A stack of services for practicing Data Engineering.
 
 The project is configured for a comfortable and quick launch of all services with a single *docker compose* command.
 
@@ -61,7 +61,7 @@ docker compose up -d
 - **Airflow**: [http://localhost:8080/](http://localhost:8080/)
 - **Minio**: [http://localhost:9001/](http://localhost:9001/)
 - **Grafana**: [http://localhost:3000/](http://localhost:3000/)
-- - In **Data Sources**, there should be connections to the Postgres DB (kaboupi-postgres) and Clickhouse DB (kaboupi-clickhouse). Configurations are stored in `kaboupi_grafana-provisioning/datasources/datasources.yaml`.
+- - In **Data Sources**, there should be connections to the Postgres DB and Clickhouse DB. Configurations are stored in `sources/grafana/provisioning/datasources/datasources.yaml`.
 
 Healthcheck is included for both databases, and by default, PVs exist only for Grafana connections.
 
@@ -73,14 +73,11 @@ Healthcheck is included for both databases, and by default, PVs exist only for G
 >     image: clickhouse/clickhouse-server:latest
 >     ...
 >     volumes:
->       - ./kaboupi_clickhouse:/etc/clickhouse-server
->       - ./my_custom_dir:/var/lib/clickhouse  # This line will add all click data to your local directory my_custom_dir
+>       - my_custom_volume:/var/lib/clickhouse  # docker volume
+>       - ./my_custom_dir:/var/lib/clickhouse   # bind mount
 >
 > volumes:
->   kaboupi_clickhouse:
->     driver: local
->   my_custom_dir:
->     driver: local
+>   my_custom_volume:
 > ```
 
 Connection credentials are listed in [.env](https://github.com/Kaboupi/d-compose/blob/master/.env) file
